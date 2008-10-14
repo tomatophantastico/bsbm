@@ -13,6 +13,6 @@ public class TestDriverDefaultValues {
 	public static final int timeoutInMs = 0;
 	public static final String driverClassName = "com.mysql.jdbc.Driver";
 	public static final int fetchSize = 100;
-	public static final boolean validation = false;
-	public static String validationFile = "run.val";
+	public static final boolean qualification = false;
+	public static String qualificationFile = "run.qual";
 }

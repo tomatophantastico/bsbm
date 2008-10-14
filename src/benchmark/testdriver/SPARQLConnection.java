@@ -8,6 +8,8 @@ import org.xml.sax.helpers.DefaultHandler;
 import org.jdom.*;
 import org.jdom.adapters.XercesDOMAdapter;
 import org.jdom.input.SAXBuilder;
+import org.jdom.output.XMLOutputter;
+
 import java.util.*;
 
 import org.apache.log4j.Logger;
@@ -228,16 +230,31 @@ private int countBytes(InputStream is) {
 		NetQuery qe = new NetQuery(serverURL, queryString, queryType, defaultGraph, 0);
 
 		InputStream is = qe.exec();
+		Document doc = getXMLDocument(is);
+		XMLOutputter outputter = new XMLOutputter();
+		logResultInfo(query, outputter.outputString(doc));
 		
 		if(queryType==Query.SELECT_TYPE)
-			queryResult = gatherResultInfoForSelectQuery(queryString, queryNr, sorted, is, rowNames);
+			queryResult = gatherResultInfoForSelectQuery(queryString, queryNr, sorted, doc, rowNames);
 		
 		if(queryResult!=null)
 			queryResult.setRun(query.getQueryMix().getRun());
 		return queryResult;
 	}
 	
-	private QueryResult gatherResultInfoForSelectQuery(String queryString, int queryNr, boolean sorted, InputStream is, String[] rows) {
+	private void logResultInfo(Query query, String queryResult) {
+		StringBuffer sb = new StringBuffer();
+		
+		sb.append("\n\n\tQuery " + query.getNr() + " of run " + (query.getQueryMix().getQueryMixRuns()+1) + ":\n");
+		sb.append("\n\tQuery string:\n\n");
+		sb.append(query.getQueryString());
+		sb.append("\n\n\tResult:\n\n");
+		sb.append(queryResult);
+		sb.append("\n\n__________________________________________________________________________________\n");
+		logger.log(Level.ALL, sb.toString());
+	}
+	
+	private Document getXMLDocument(InputStream is) {
 		SAXBuilder builder = new SAXBuilder();
 		builder.setValidation(false);
 		builder.setIgnoringElementContentWhitespace(true);
@@ -251,7 +268,10 @@ private int countBytes(InputStream is) {
 			e.printStackTrace();
 			System.exit(-1);
 		}
+		return doc;
+	}
 	
+	private QueryResult gatherResultInfoForSelectQuery(String queryString, int queryNr, boolean sorted, Document doc, String[] rows) {
 		Element root = doc.getRootElement();
 
 		//Get head information

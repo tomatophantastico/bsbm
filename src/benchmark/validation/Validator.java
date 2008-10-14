@@ -18,11 +18,14 @@
 package benchmark.validation;
 
 import java.io.EOFException;
+import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import benchmark.testdriver.TestDriverDefaultValues;
 
@@ -31,12 +34,13 @@ public class Validator {
 	private ObjectInputStream correctStream;
 	private int[] totalQueryCount;
 	private int[] correctQueryCount;
-	private boolean resultsCountOnly;
+	private boolean resultsCountOnly = ValidatorDefaultValues.resultsCountOnly;
+	private String validationLog = ValidatorDefaultValues.qualificationLog;
 	
-	public Validator(String testFile, String validationFile, boolean resultCountOnly) {
+	public Validator(String correctFile, String testFile, String[] args) {
 		try {
 			examineStream = new ObjectInputStream(new FileInputStream(testFile));
-			correctStream = new ObjectInputStream(new FileInputStream(validationFile));
+			correctStream = new ObjectInputStream(new FileInputStream(correctFile));
 			int maxQuery = Math.max(examineStream.readInt(), correctStream.readInt());
 			totalQueryCount = new int[maxQuery];
 			correctQueryCount = new int[maxQuery];
@@ -44,7 +48,7 @@ public class Validator {
 			e.printStackTrace();
 			System.exit(-1);
 		}
-		this.resultsCountOnly = resultCountOnly;
+		processProgramParameters(args);
 	}
 	
 	public static void main(String[] argv) {
@@ -53,12 +57,41 @@ public class Validator {
 			System.exit(-1);
 		}
 		
-		Validator validator = new Validator(argv[0],argv[1],false);
+		int arglength = argv.length;
+		Validator validator = new Validator(argv[arglength-2],argv[arglength-1],Arrays.copyOf(argv, arglength-2));
 		validator.test();
+	}
+	
+	/*
+	 * Process the program option parameters typed on the command line.
+	 */
+	private void processProgramParameters(String[] args) {
+		int i=0;
+		while(i<args.length) {
+			try {
+				if(args[i].equals("-vl")) {
+					validationLog = args[i++ + 1];
+				}
+				else if(args[i].equals("-rc")) {
+					resultsCountOnly = true;
+				}
+				else {
+					System.err.println("Unknown parameter: " + args[i]);
+					printUsageInfo();
+					System.exit(-1);
+				}
+				i++;						
+			} catch(Exception e) {
+				System.err.println("Invalid arguments\n");
+				printUsageInfo();
+				System.exit(-1);
+			}
+		}
 	}
 	
 	private void test() {
 		try{
+			FileWriter resultWriter = new FileWriter(validationLog);
 			System.out.println("Starting validation...\n");
 			
 			//Check seed
@@ -162,8 +195,8 @@ public class Validator {
 					correctQueryCount[examine.getQueryNr()-1]++;
 				}
 				else {
-					System.out.println("\nResult for Query " + examine.getQueryNr() + " of run " + examine.getRun() + " differs:\n");
-					System.out.println(error);
+					resultWriter.append("\nResult for Query " + examine.getQueryNr() + " of run " + examine.getRun() + " differs:\n");
+					resultWriter.append(error);
 				}
 				
 			  } catch(EOFException e) {
@@ -176,6 +209,8 @@ public class Validator {
 				    	else
 				    		System.out.println("Query was not executed.\n");
 				    }
+				    resultWriter.flush();
+				    resultWriter.close();
 				    return;
 			  }
 			}
@@ -193,13 +228,14 @@ public class Validator {
 	}
 	
 	private static void printUsageInfo() {
-		String output = "Usage: java benchmark.validation.Validator <options> X Y\n\n" +
-		"X: file of a correct run\n\n" +
-		"Y: file of a run to test\n\n" +
+		String output = "Usage: java benchmark.validation.Validator <options> Correct.val Test.val\n\n" +
+		"Correct.val: file of a correct run\n\n" +
+		"Test.val: file of a run to test against Correct.val\n\n" +
 		"Possible options are:\n" +
-		"\t-runs <number of query mix runs>\n" +
-		"\t\tdefault: " + TestDriverDefaultValues.nrRuns + "\n" +
-		"\t-idir <data input directory>\n" +
+		"\t-rc\n" +
+		"\t\tOnly check the number of results, no content.\n" +
+		"\t\tdefault: " + ValidatorDefaultValues.resultsCountOnly + "\n" +
+		"\t-vf <validation log>\n" +
 		"\t\tThe input directory for the Test Driver data\n" +
 		"\t\tdefault: " + TestDriverDefaultValues.resourceDir + "\n" +
 		"\t-qdir <query directory>\n" +

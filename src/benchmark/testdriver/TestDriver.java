@@ -57,8 +57,8 @@ public class TestDriver {
 	protected int nrThreads;
 	protected int timeout = TestDriverDefaultValues.timeoutInMs;
 	protected String driverClassName = TestDriverDefaultValues.driverClassName;
-	protected boolean validation = TestDriverDefaultValues.validation;
-	private String validationFile = TestDriverDefaultValues.validationFile;
+	protected boolean qualification = TestDriverDefaultValues.qualification;
+	private String qualificationFile = TestDriverDefaultValues.qualificationFile;
 	
 	public TestDriver(String[] args) {
 		processProgramParameters(args);
@@ -136,8 +136,8 @@ public class TestDriver {
 					else
 						queries[qnr-1] = new Query(queryFile, queryDescFile, "%");
 					
-					//Read validation information
-					if(validation) {
+					//Read qualification information
+					if(qualification) {
 						File queryValidFile = new File(queryDir, "query" + qnr + "valid.txt");
 						String[] rowNames = getRowNames(queryValidFile);
 						queries[qnr-1].setRowNames(rowNames);
@@ -171,7 +171,7 @@ public class TestDriver {
 			}
 
 		} catch(IOException e) {
-			System.err.println("Error processing query validation-info file: " + file.getAbsolutePath());
+			System.err.println("Error processing query qualification-info file: " + file.getAbsolutePath());
 			System.exit(-1);
 		}
 		return rowNames.toArray(new String[1]);
@@ -270,9 +270,9 @@ public class TestDriver {
 		}
 	}
 	
-	public void runValidation() {
-		File file = new File(validationFile);
-		System.out.println("Creating validation file: " + file.getAbsolutePath() + "\n");
+	public void runQualification() {
+		File file = new File(qualificationFile);
+		System.out.println("Creating qualification file: " + file.getAbsolutePath() + "\n");
 		try{
 			file.createNewFile();
 			ObjectOutputStream objectOutput = new ObjectOutputStream(new FileOutputStream(file, false));
@@ -305,7 +305,7 @@ public class TestDriver {
 			}
 			objectOutput.flush();
 			objectOutput.close();
-			System.out.println("\nValidation file created!");
+			System.out.println("\nQualification file created!");
 		} catch(IOException e) {
 			e.printStackTrace();
 			System.exit(-1);
@@ -373,8 +373,12 @@ public class TestDriver {
 				else if (args[i].startsWith("-dbdriver")) {
 					driverClassName = args[i++ + 1];
 				}
-				else if (args[i].startsWith("-validation")) {
-					validation = true;
+				else if (args[i].startsWith("-qf")) {
+					qualificationFile = args[i++ + 1];
+				}
+				else if (args[i].startsWith("-q")) {
+					qualification = true;
+					nrRuns = 15;
 				}
 				else if(!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
@@ -574,7 +578,13 @@ public class TestDriver {
 						"\t\tTimeouts will be logged for the result report.\n" +
 						"\t\tdefault: " + TestDriverDefaultValues.timeoutInMs + "ms\n" + 
 						"\t-dbdriver <DB-Driver Class Name>\n" +
-						"\t\tdefault: " + TestDriverDefaultValues.driverClassName+ "\n";
+						"\t\tdefault: " + TestDriverDefaultValues.driverClassName+ "\n" +
+						"\t-q\n"  +
+						"\t\tTurn on qualification mode instead of doing a test run.\n" +
+						"\t\tdefault: " + TestDriverDefaultValues.qualification + "\n" +
+						"\t-qf <qualification file name>\n" +
+						"\t\tTo change the  filename from its default.\n" +
+						"\t\tdefault: " + TestDriverDefaultValues.qualificationFile + "\n";
 		
 		System.out.print(output);
 	}
@@ -586,8 +596,8 @@ public class TestDriver {
 		System.out.println("\nStarting test...\n");
 		if(testDriver.multithreading)
 			testDriver.runMT();
-		else if(testDriver.validation)
-			testDriver.runValidation();
+		else if(testDriver.qualification)
+			testDriver.runQualification();
 		else {
 			testDriver.run();
 			System.out.println("\n" + testDriver.printResults(true));
