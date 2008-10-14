@@ -82,8 +82,8 @@ public class QueryResult implements Serializable{
 		for(int i=0;i<otherList.size();i++) {
 			if(!otherList.get(i).equals(resultList.get(i))) {
 				error = addError(error, "Wrong results and/or wrong ordering in row " + (i+1) + ".\n");
-				error = addError(error, "\nCorrect: " + otherList.get(i));
-				error = addError(error, "\nFound: " + resultList.get(i) + "\n");
+				error = addError(error, "\tCorrect: " + otherList.get(i));
+				error = addError(error, "\n\tFound: " + resultList.get(i) + "\n");
 				break;
 			}
 		}
