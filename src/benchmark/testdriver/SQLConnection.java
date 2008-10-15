@@ -3,7 +3,7 @@ package benchmark.testdriver;
 import org.apache.log4j.Level;
 import org.apache.log4j.Logger;
 
-import benchmark.validation.QueryResult;
+import benchmark.qualification.QueryResult;
 
 import java.sql.*;
 
