@@ -14,9 +14,7 @@ import benchmark.generator.DateGenerator;
 import benchmark.generator.Generator;
 import benchmark.generator.RandomBucket;
 import benchmark.generator.ValueGenerator;
-import benchmark.model.Offer;
 import benchmark.model.ProductType;
-import benchmark.vocabulary.XSD;
 
 public class SQLParameterPool extends AbstractParameterPool {
 	private ValueGenerator valueGen;

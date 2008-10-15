@@ -135,6 +135,7 @@ public class Qualification {
 			String error = null;
 			QueryResult examine = null;
 			QueryResult correct = null;
+			resultWriter.append("Qualification results: Single Queries (the qualification overview is at the end of this file)\n\n");
 			//Check single query results
 			while(true) {
 			  try {
@@ -197,17 +198,19 @@ public class Qualification {
 				}
 				
 			  } catch(EOFException e) {
+				  resultWriter.append("\n______________________________________________\n\nQualification overview:\n\n");
 				    for(int i=0;i<totalQueryCount.length;i++) {
-				    	System.out.println("Query " + (i+1) + ":");
+				    	resultWriter.append("Query " + (i+1) + ":");
 				    	if(totalQueryCount[i]>0) {
-				    		System.out.println("correct/total executions: " + correctQueryCount[i]+"/"+totalQueryCount[i]);
-				    		System.out.println("correct/total ratio:" + 100*correctQueryCount[i]/totalQueryCount[i] + "%\n");
+				    		resultWriter.append(" correct/total executions: " + correctQueryCount[i]+"/"+totalQueryCount[i] + "\n");
+				    		resultWriter.append(" correct/total ratio:" + 100*correctQueryCount[i]/totalQueryCount[i] + "%\n\n");
 				    	}
 				    	else
-				    		System.out.println("Query was not executed.\n");
+				    		resultWriter.append("Query was not executed or ignored.\n\n");
 				    }
 				    resultWriter.flush();
 				    resultWriter.close();
+				    System.out.println("Qualification finished. Results written to " + qualificationLog + ".");
 				    return;
 			  }
 			}

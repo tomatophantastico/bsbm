@@ -35,7 +35,6 @@ import java.io.*;
 import java.util.StringTokenizer;
 
 import benchmark.qualification.QueryResult;
-import benchmark.qualification.*;
 
 public class TestDriver {
 	protected QueryMix queryMix;//The Benchmark Querymix
@@ -595,8 +594,10 @@ public class TestDriver {
 		TestDriver testDriver = new TestDriver(argv);
 		testDriver.init();
 		System.out.println("\nStarting test...\n");
-		if(testDriver.multithreading)
+		if(testDriver.multithreading) {
 			testDriver.runMT();
+			System.out.println("\n" + testDriver.printResults(true));
+		}
 		else if(testDriver.qualification)
 			testDriver.runQualification();
 		else {

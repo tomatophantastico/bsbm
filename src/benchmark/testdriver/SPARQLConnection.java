@@ -6,7 +6,6 @@ import javax.xml.parsers.*;
 import org.xml.sax.*;
 import org.xml.sax.helpers.DefaultHandler;
 import org.jdom.*;
-import org.jdom.adapters.XercesDOMAdapter;
 import org.jdom.input.SAXBuilder;
 import org.jdom.output.XMLOutputter;
 
