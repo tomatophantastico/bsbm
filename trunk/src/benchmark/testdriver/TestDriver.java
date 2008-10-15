@@ -34,7 +34,8 @@ import org.apache.log4j.Level;
 import java.io.*;
 import java.util.StringTokenizer;
 
-import benchmark.validation.*;
+import benchmark.qualification.QueryResult;
+import benchmark.qualification.*;
 
 public class TestDriver {
 	protected QueryMix queryMix;//The Benchmark Querymix

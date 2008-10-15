@@ -15,7 +15,7 @@ import java.util.*;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
 
-import benchmark.validation.QueryResult;
+import benchmark.qualification.QueryResult;
 
 public class SPARQLConnection implements ServerConnection{
 	private String serverURL;

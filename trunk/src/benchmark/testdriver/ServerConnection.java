@@ -1,6 +1,6 @@
 package benchmark.testdriver;
 
-import benchmark.validation.QueryResult;
+import benchmark.qualification.QueryResult;
 
 public interface ServerConnection {
 	/*
