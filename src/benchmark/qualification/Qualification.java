@@ -228,9 +228,9 @@ public class Qualification {
 	}
 	
 	private static void printUsageInfo() {
-		String output = "Usage: java benchmark.validation.Validator <options> Correct.val Test.val\n\n" +
-		"Correct.val: file of a correct run\n\n" +
-		"Test.val: file of a run to test against Correct.val\n\n" +
+		String output = "Usage: java benchmark.qualification.Qualification <options> Correct.qual Test.qual\n\n" +
+		"Correct.qual: file of a correct run\n\n" +
+		"Test.qual: file of a run to test against Correct.qual\n\n" +
 		"Possible options are:\n" +
 		"\t-rc\n" +
 		"\t\tOnly check the number of results, not the result content.\n" +
