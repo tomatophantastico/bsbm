@@ -21,11 +21,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 
 import java.util.Locale;
 import java.util.ArrayList;
+import java.util.LinkedList;
 
 import org.apache.log4j.xml.DOMConfigurator;
 import org.apache.log4j.Logger;
@@ -60,6 +62,15 @@ public class TestDriver {
 	protected boolean qualification = TestDriverDefaultValues.qualification;
 	private String qualificationFile = TestDriverDefaultValues.qualificationFile;
 	
+	/*
+	 * Parameters for steady state
+	 */
+	private int qmsPerPeriod = TestDriverDefaultValues.qmsPerPeriod;//Querymixes per measuring period
+	private double percentDifference = TestDriverDefaultValues.percentDifference;//Difference in percent between min and max measurement period
+	private int nrOfPeriods = TestDriverDefaultValues.nrOfPeriods;//The last nrOfPeriods periods are compared
+	private boolean rampup = false;
+	
+	
 	public TestDriver(String[] args) {
 		processProgramParameters(args);
 		System.out.print("Reading Test Driver data...");
@@ -82,6 +93,9 @@ public class TestDriver {
 			printUsageInfos();
 			System.exit(-1);
 		}
+		
+		TestDriverShutdown tds = new TestDriverShutdown(this);
+		Runtime.getRuntime().addShutdownHook(tds);
 	}
 	
 	public void init() {
@@ -241,6 +255,14 @@ public class TestDriver {
 	}
 	
 	public void run() {
+		int qmsPerPeriod = TestDriverDefaultValues.qmsPerPeriod;
+		int qmsCounter = 0;
+		int periodCounter = 0;
+		double periodRuntime = 0;
+		BufferedWriter measurementFile = null;
+		try{
+			measurementFile = new BufferedWriter(new FileWriter("steadystate.tsv"));
+		} catch(IOException e) { System.err.println("Could not create file steadystae.tsv!"); System.exit(-1);}
 		
 		for(int nrRun=-warmups;nrRun<nrRuns;nrRun++) {
 			long startTime = System.currentTimeMillis();
@@ -255,6 +277,24 @@ public class TestDriver {
 					server.executeQuery(next, next.getQueryType());
 				}
 			}
+			
+			//Ignore warm-up measures
+			if(nrRun>=0) {
+				qmsCounter++;
+				periodRuntime += queryMix.getQueryMixRuntime();
+			}
+			
+			//Write out period data
+			if(qmsCounter==qmsPerPeriod) {
+				periodCounter++;
+				try{
+					measurementFile.append(periodCounter + "\t" + periodRuntime + "\n");
+					measurementFile.flush();
+				} catch(IOException e) { e.printStackTrace(); System.exit(-1);}
+				periodRuntime = 0;
+				qmsCounter = 0;
+			}
+			
 			System.out.println(nrRun + ": " + String.format(Locale.US, "%.2f", queryMix.getQueryMixRuntime()*1000)
 					+ "ms, total: " + (System.currentTimeMillis()-startTime) + "ms");
 			queryMix.finishRun();
@@ -313,6 +353,89 @@ public class TestDriver {
 	}
 	
 	/*
+	 * Ramp-up: Runs at least nrOfPeriods periods and checks after every period if the last nrOfPeriods periods
+	 * differ at most percentDifference from each other. There is also a check if one of the examined periods
+	 * is the minimum overall period, then the percentage check will be ignored.
+	 *  
+	 */
+	public void runRampup() {
+		System.out.println("Starting Ramp-up. Writing measurement data to rampup.tsv");
+		BufferedWriter measurementFile = null;
+		try{
+			measurementFile = new BufferedWriter(new FileWriter("rampup.tsv"));
+		} catch(IOException e) { System.err.println("Could not create file rampup.tsv!"); System.exit(-1);}
+	
+		int periodNr = 0;
+		LinkedList<Double> periods = new LinkedList<Double>();
+		double totalRuntime = 0;
+		boolean unsteady = true;//Set to false after reaching steady state
+		double minimumPeriod = Double.MAX_VALUE;
+		while(unsteady) {
+			
+			periodNr++;
+			double runtime = 0;
+			//Running one period
+			for(int nrRun=1;nrRun<=qmsPerPeriod;nrRun++) {
+				queryMix.setRun(nrRun);
+				while(queryMix.hasNext()) {
+					Query next = queryMix.getNext();
+					Object[] queryParameters = parameterPool.getParametersForQuery(next);
+					next.setParameters(queryParameters);
+					if(ignoreQueries[next.getNr()-1])
+						queryMix.setCurrent(0, -1.0);
+					else {
+						server.executeQuery(next, next.getQueryType());
+					}
+				}
+				runtime += queryMix.getQueryMixRuntime();
+				System.out.println("Period " + periodNr + " Run: " + nrRun + ": " + String.format(Locale.US, "%.3f", queryMix.getQueryMixRuntime()*1000)+ "ms");
+				queryMix.finishRun();
+			}
+			
+			//Write period/runtime pairs into rampup.tsv
+			try{
+				measurementFile.append(periodNr + "\t" + runtime + "\n");
+				measurementFile.flush();
+				} catch(IOException e) { e.printStackTrace(); System.exit(-1);}
+			totalRuntime += runtime;
+			
+			if(periodNr<=nrOfPeriods) {
+				periods.addLast(runtime);
+			} else {
+				periods.addLast(runtime);
+				periods.removeFirst();
+				if(periods.size()!=nrOfPeriods)
+					throw new AssertionError();
+				
+				//Calculate difference between the periods
+				double min = Double.MAX_VALUE;
+				double max = Double.MIN_VALUE;
+				for(double pVal: periods) {
+					if(pVal < min)
+						min = pVal;
+					if(pVal > max)
+						max = pVal;
+					if(pVal <= minimumPeriod) {
+						minimumPeriod = pVal;
+						max = Double.MAX_VALUE;
+						break;//Special case: If this period is lower than the previous minimum period, go on.
+					}
+				}
+				if((max-min)/min < percentDifference)
+					unsteady = false;
+			}
+			
+			double all5 = 0;
+			for(double pVal: periods) {
+				all5 += pVal;
+			}
+			System.out.println("Total execution time for period " + periodNr + "/last " + (periodNr<nrOfPeriods?periodNr:nrOfPeriods) + " periods: " + String.format(Locale.US, "%.3f",runtime*1000) + "ms/"+ String.format(Locale.US, "%.3f",all5*1000) +"ms\n");
+		}
+		System.out.println("Steady state reached after " + periodNr + " measurement periods/" + String.format(Locale.US, "%.3f",totalRuntime) + "s");
+		server.close();
+	}
+	
+	/*
 	 * run the test driver in multi-threaded mode
 	 */
 	public void runMT() {
@@ -357,28 +480,36 @@ public class TestDriver {
 				else if(args[i].equals("-dg")) {
 					defaultGraph = args[i++ + 1];
 				}
-				else if(args[i].startsWith("-sql")) {
+				else if(args[i].equals("-sql")) {
 					doSQL = true;
 				}
-				else if(args[i].startsWith("-mt")) {
+				else if(args[i].equals("-mt")) {
+					if(rampup)
+						throw new Exception("Incompatible options: -mt and -rampup");
 					multithreading = true;
 					nrThreads = Integer.parseInt(args[i++ + 1]);
 				}
-				else if(args[i].startsWith("-seed")) {
+				else if(args[i].equals("-seed")) {
 					seed = Long.parseLong(args[i++ + 1]);
 				}
-				else if(args[i].startsWith("-t")) {
+				else if(args[i].equals("-t")) {
 					timeout = Integer.parseInt(args[i++ + 1]);
 				}
-				else if (args[i].startsWith("-dbdriver")) {
+				else if (args[i].equals("-dbdriver")) {
 					driverClassName = args[i++ + 1];
 				}
-				else if (args[i].startsWith("-qf")) {
+				else if (args[i].equals("-qf")) {
 					qualificationFile = args[i++ + 1];
 				}
-				else if (args[i].startsWith("-q")) {
+				else if (args[i].equals("-q")) {
 					qualification = true;
 					nrRuns = 15;
+				}
+				else if(args[i].equals("-rampup")) {
+					if(multithreading)
+						throw new Exception("Incompatible options: -mt and -rampup");
+					rampup = true;
+					
 				}
 				else if(!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
@@ -584,9 +715,25 @@ public class TestDriver {
 						"\t\tdefault: " + TestDriverDefaultValues.qualification + "\n" +
 						"\t-qf <qualification file name>\n" +
 						"\t\tTo change the  filename from its default.\n" +
-						"\t\tdefault: " + TestDriverDefaultValues.qualificationFile + "\n";
+						"\t\tdefault: " + TestDriverDefaultValues.qualificationFile + "\n" +
+						"\t-rampup\n" +
+						"\t\tRun ramp-up to reach steady state.\n";
 		
 		System.out.print(output);
+	}
+	
+	class TestDriverShutdown extends Thread {
+		TestDriver testdriver;
+		
+		TestDriverShutdown(TestDriver t) {
+			this.testdriver = t;
+		}
+		
+		public void run() {
+			try {
+				testdriver.server.close();
+			} catch(Exception e) {}
+		}
 	}
 	
 	public static void main(String argv[]) {
@@ -600,6 +747,8 @@ public class TestDriver {
 		}
 		else if(testDriver.qualification)
 			testDriver.runQualification();
+		else if(testDriver.rampup)
+			testDriver.runRampup();
 		else {
 			testDriver.run();
 			System.out.println("\n" + testDriver.printResults(true));

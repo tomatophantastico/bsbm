@@ -153,7 +153,7 @@ public class SQLSerializer implements Serializer {
 			values.append(",");
 			
 //			price
-			values.append(offer.getPrice());
+			values.append(offer.getPriceString());
 			values.append(",");
 			
 //			validFrom
@@ -772,8 +772,8 @@ public class SQLSerializer implements Serializer {
 						"  `producer` int (11),\n" +
 						"  `vendor` int (11),\n" +
 						"  `price` double default null,\n" +
-						"  `validFrom` date default null,\n" +
-						"  `validTo` date default null,\n" +
+						"  `validFrom` datetime default null,\n" +
+						"  `validTo` datetime default null,\n" +
 						"  `deliveryDays` int(11) default null,\n" +
 						"  `offerWebpage` varchar(100) character set utf8 collate utf8_bin default NULL,\n" +
 						"  `publisher` int(11),\n" +
@@ -800,7 +800,7 @@ public class SQLSerializer implements Serializer {
 						"  `product` int (11),\n" +
 						"  `producer` int (11),\n" +
 						"  `person` int (11),\n" +
-						"  `reviewDate` date default NULL,\n" +
+						"  `reviewDate` datetime default NULL,\n" +
 						"  `title` varchar(200) character set utf8 collate utf8_bin default NULL,\n" +
 						"  `text` text character set utf8 collate utf8_bin,\n" +
 						"  `language` char(2) character set utf8 collate utf8_bin default NULL,\n" +

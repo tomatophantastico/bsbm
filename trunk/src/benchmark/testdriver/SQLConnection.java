@@ -80,6 +80,10 @@ public class SQLConnection implements ServerConnection {
 		}
 	}
 	
+	/*
+	 * Execute Query with precompiled Query
+	 * @see benchmark.testdriver.ServerConnection#executeQuery(benchmark.testdriver.CompiledQuery, benchmark.testdriver.CompiledQueryMix)
+	 */
 	public void executeQuery(CompiledQuery query, CompiledQueryMix queryMix) {
 		double timeInSeconds;
 		String queryString = query.getQueryString();
