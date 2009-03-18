@@ -325,7 +325,7 @@ public class Generator {
 		
 		//Compute count range of Features per Product Type for every depth
 		int depth = productTypeLeaves.get(0).getDepth();
-	
+
 		int[] featureFrom = new int[depth];
 		int[] featureTo = new int[depth];
 		
@@ -341,7 +341,7 @@ public class Generator {
 			featureFrom[i-1] = 35 * i / depthSum;
 			featureTo[i-1] = 75 * i / depthSum;
 		}
-		
+
 		//Product Feature Nr.
 		int productFeatureNr = 1;
 		
@@ -401,7 +401,7 @@ public class Generator {
 			ProductType pt = it.next();
 			int from = featureFrom[pt.getDepth()-1];
 			int to = featureTo[pt.getDepth()-1];
-			
+
 			int count = valueGen.randomInt(from, to);
 			Vector<Integer> features = new Vector<Integer>(count);
 			

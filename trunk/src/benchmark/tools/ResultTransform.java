@@ -23,11 +23,11 @@ public class ResultTransform {
 	private final static String[] queries = { "Query 1", "Query 2", "Query 3", "Query 4",
 		 								"Query 5", "Query 6", "Query 7", "Query 8",
 		 								"Query 9", "Query 10", "Query 11", "Query 12"};
-	private static final String[] sizes = { "250K", "1M", "25M", "100M" };
+	private static final String[] sizes = { "1M", "25M", "100M" };
 //	private static final String[] sizes = { "25M", "100M" };
 	private static HashMap<String, Integer> sizeMap = new HashMap<String, Integer>();
 	static String queryParameter = "aqet";
-	static String querymixParameter = "actualtotalruntime";
+	static String querymixParameter = "qmph";
 	static boolean american = true;//switch . and ,
 	
 	public static void main(String argv[]) {
