@@ -624,8 +624,11 @@ public class TestDriver {
 			sb.append("     <actualtotalruntime>" + String.format(Locale.US, "%.3f",queryMix.getMultiThreadRuntime()) + "</actualtotalruntime>\n");
 			singleMultiRatio = queryMix.getTotalRuntime()/queryMix.getMultiThreadRuntime();
 		}
-		else
+		else {
 			sb.append("     <totalruntime>" + String.format(Locale.US, "%.3f",queryMix.getTotalRuntime()) + "</totalruntime>\n");
+			singleMultiRatio = 1;
+		}
+		
 		if(multithreading)
 			sb.append("     <qmph>" + String.format(Locale.US, "%.2f",queryMix.getMultiThreadQmpH()) + "</qmph>\n");
 		else
