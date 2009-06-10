@@ -42,33 +42,33 @@ public class TestDriver {
 	protected QueryMix queryMix;//The Benchmark Querymix
 	protected int warmups = TestDriverDefaultValues.warmups;//how many Query mixes are run for warm up
 	protected AbstractParameterPool parameterPool;//Where to get the query parameters from
-	private ServerConnection server;//only important for single threaded runs
-	private String queryMixFN = "querymix.txt";//"qm.txt";
-	private String ignoreQueryFN = "ignoreQueries.txt";//contains Queries to ignore
-	private File queryDir = TestDriverDefaultValues.queryDir;//where to take the queries from
+	protected ServerConnection server;//only important for single threaded runs
+	protected String queryMixFN = "querymix.txt";//"qm.txt";
+	protected String ignoreQueryFN = "ignoreQueries.txt";//contains Queries to ignore
+	protected File queryDir = TestDriverDefaultValues.queryDir;//where to take the queries from
 	protected int nrRuns = TestDriverDefaultValues.nrRuns;
-	private long seed = TestDriverDefaultValues.seed;//For the random number generators
+	protected long seed = TestDriverDefaultValues.seed;//For the random number generators
 	protected String sparqlEndpoint = null;
 	protected String defaultGraph = TestDriverDefaultValues.defaultGraph;
-	private String resourceDir = TestDriverDefaultValues.resourceDir;//Where to take the Test Driver data from
-	private String xmlResultFile = TestDriverDefaultValues.xmlResultFile;
-	private static Logger logger = Logger.getLogger( TestDriver.class );
+	protected String resourceDir = TestDriverDefaultValues.resourceDir;//Where to take the Test Driver data from
+	protected String xmlResultFile = TestDriverDefaultValues.xmlResultFile;
+	protected static Logger logger = Logger.getLogger( TestDriver.class );
 	protected boolean[] ignoreQueries;//Queries to ignore
 	protected boolean doSQL = false;
-	private boolean multithreading=false;
+	protected boolean multithreading=false;
 	protected int nrThreads;
 	protected int timeout = TestDriverDefaultValues.timeoutInMs;
 	protected String driverClassName = TestDriverDefaultValues.driverClassName;
 	protected boolean qualification = TestDriverDefaultValues.qualification;
-	private String qualificationFile = TestDriverDefaultValues.qualificationFile;
+	protected String qualificationFile = TestDriverDefaultValues.qualificationFile;
 	
 	/*
 	 * Parameters for steady state
 	 */
-	private int qmsPerPeriod = TestDriverDefaultValues.qmsPerPeriod;//Querymixes per measuring period
-	private double percentDifference = TestDriverDefaultValues.percentDifference;//Difference in percent between min and max measurement period
-	private int nrOfPeriods = TestDriverDefaultValues.nrOfPeriods;//The last nrOfPeriods periods are compared
-	private boolean rampup = false;
+	protected int qmsPerPeriod = TestDriverDefaultValues.qmsPerPeriod;//Querymixes per measuring period
+	protected double percentDifference = TestDriverDefaultValues.percentDifference;//Difference in percent between min and max measurement period
+	protected int nrOfPeriods = TestDriverDefaultValues.nrOfPeriods;//The last nrOfPeriods periods are compared
+	protected boolean rampup = false;
 	
 	
 	public TestDriver(String[] args) {
@@ -458,7 +458,7 @@ public class TestDriver {
 	/*
 	 * Process the program parameters typed on the command line.
 	 */
-	private void processProgramParameters(String[] args) {
+	protected void processProgramParameters(String[] args) {
 		int i=0;
 		while(i<args.length) {
 			try {
@@ -681,7 +681,7 @@ public class TestDriver {
 	/*
 	 * print command line options
 	 */
-	private void printUsageInfos() {
+	protected void printUsageInfos() {
 		String output = "Usage: java benchmark.testdriver.TestDriver <options> SPARQL-Endpoint\n\n" +
 						"SPARQL-Endpoint: The URL of the HTTP SPARQL Endpoint\n\n" +
 						"Possible options are:\n" +

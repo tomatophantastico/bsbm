@@ -127,6 +127,8 @@ public class Generator {
 			return new XMLSerializer(outputFileName + ".xml", forwardChaining);
 		else if(t.equals("sql"))
 			return new SQLSerializer(outputFileName, forwardChaining, "benchmark");
+		else if(t.equals("virt"))
+			return new VirtSerializer(outputFileName, forwardChaining);
 		else
 			return null;
 	}
@@ -795,7 +797,7 @@ public class Generator {
 		{
 			//Get number of reviews for this Rating Site
 			Integer reviewCountRatingSite = reviewCountPRSGen.getValue();
-			if(reviewNr+reviewCountRatingSite-1 > reviewCount)
+			if(reviewNr+reviewCountRatingSite > reviewCount)
 				reviewCountRatingSite = reviewCount - reviewNr + 1;
 			
 			//Generate provenance data for this rating site
@@ -834,7 +836,7 @@ public class Generator {
 			
 				//Now generate Reviews for this Person
 				Integer reviewCountPerson = reviewCountPPGen.getValue0();
-				if(reviewNr+reviewCountPerson-1 > maxReviewForRatingSite)
+				if(reviewNr+reviewCountPerson > maxReviewForRatingSite)
 					reviewCountPerson = maxReviewForRatingSite - reviewNr;
 				
 				createReviewsOfPerson(bundle, p, reviewNr, reviewCountPerson, valueGen, reviewDateGen,
@@ -933,11 +935,11 @@ public class Generator {
 	/*
 	 * print command line options
 	 */
-	private static void printUsageInfos() {
+	public static void printUsageInfos() {
 		String output = "Usage: java benchmark.generator.Generator <options>\n\n" +
 						"Possible options are:\n" +
 						"\t-s <output format>\n" +
-						"\t\twhere <output format>: nt (N-Triples), trig (TriG), ttl (Turtle), sql (MySQL dump), xml (XML dump)\n" +
+						"\t\twhere <output format>: nt (N-Triples), trig (TriG), ttl (Turtle), sql (MySQL dump), virt (Virtuoso SQL dump), xml (XML dump)\n" +
 						"\t\tdefault: nt\n" +
 						"\t\tNote:\tBy chosing a named graph output format like TriG,\n\t\t\ta named graph model gets generated.\n" +
 						"\t-pc <product count>\n" +
