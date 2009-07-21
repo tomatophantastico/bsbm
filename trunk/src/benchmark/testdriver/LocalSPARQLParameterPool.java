@@ -30,7 +30,7 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		init(resourceDirectory);
 	}
 	
-	private void init(File resourceDir) {
+    private void init(File resourceDir) {
 		//Read in the Product Type hierarchy from resourceDir/pth.dat
 		ObjectInputStream productTypeInput;
 		File pth = new File(resourceDir, "pth.dat");
@@ -94,7 +94,9 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 			currentDate = (GregorianCalendar) currentDateAndLabelWordsInput.readObject();
 			currentDateString = "\"" + DateGenerator.formatDateTime(currentDate) + "\"^^<" + XSD.DateTime + ">";
 //			currentDateString = "\"" + DateGenerator.formatDate(currentDate) + "\"^^<" + XSD.Date + ">";
-			wordHash = (HashMap<String, Integer>) currentDateAndLabelWordsInput.readObject();
+			@SuppressWarnings("unchecked")
+			HashMap<String, Integer> x = (HashMap<String, Integer>)currentDateAndLabelWordsInput.readObject();
+			wordHash = x ;
 			wordList = wordHash.keySet().toArray(new String[0]);
 		} catch(IOException e) {
 			System.err.println("Could not open or process file " + cdlw.getAbsolutePath());

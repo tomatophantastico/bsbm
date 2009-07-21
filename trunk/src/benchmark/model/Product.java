@@ -65,7 +65,8 @@ public class Product extends BSBMResource{
 		this.productPropertyTextual = productPropertyTextual;
 	}
 	
-	public String toString()
+	@Override
+    public String toString()
 	{
 		return getURIref(nr, producer);
 	}

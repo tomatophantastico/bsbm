@@ -102,7 +102,10 @@ public class SQLParameterPool extends AbstractParameterPool {
 			offerCount = currentDateAndLabelWordsInput.readInt();
 			currentDate = (GregorianCalendar) currentDateAndLabelWordsInput.readObject();
 			currentDateString = DateGenerator.formatDate(currentDate);
-			wordHash = (HashMap<String, Integer>) currentDateAndLabelWordsInput.readObject();
+			
+			@SuppressWarnings("unchecked")
+			HashMap<String, Integer> x = (HashMap<String, Integer>)currentDateAndLabelWordsInput.readObject();
+			wordHash = x ; 
 			wordList = wordHash.keySet().toArray(new String[0]);
 		} catch(IOException e) {
 			System.err.println("Could not open or process file " + cdlw.getAbsolutePath());
@@ -116,7 +119,8 @@ public class SQLParameterPool extends AbstractParameterPool {
 	 * (non-Javadoc)
 	 * @see benchmark.testdriver.AbstractParameterPool#getParametersForQuery(benchmark.testdriver.Query)
 	 */
-	public Object[] getParametersForQuery(Query query) {
+	@Override
+    public Object[] getParametersForQuery(Query query) {
 		Byte[] parameterTypes = query.getParameterTypes();
 		Object[] parameters = new Object[parameterTypes.length];
 		ArrayList<Integer> productFeatureIndices = new ArrayList<Integer>();

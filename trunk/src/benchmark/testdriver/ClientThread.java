@@ -20,7 +20,8 @@ public class ClientThread extends Thread {
 		this.nr = clientNr;
 	}
 	
-	public void run() {
+	@Override
+    public void run() {
 		queryMix = new CompiledQueryMix(maxQuery);
 		while(!Thread.interrupted()) {
 			boolean inWarmup;

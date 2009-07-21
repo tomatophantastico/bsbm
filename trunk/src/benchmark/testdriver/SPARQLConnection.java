@@ -197,7 +197,8 @@ private int countBytes(InputStream is) {
 			count = 0;
 		}
 		
-		public void startElement( String namespaceURI,
+		@Override
+        public void startElement( String namespaceURI,
                 String localName,   // local name
                 String qName,       // qualified name
                 Attributes attrs ) {
@@ -270,22 +271,24 @@ private int countBytes(InputStream is) {
 		return doc;
 	}
 	
-	private QueryResult gatherResultInfoForSelectQuery(String queryString, int queryNr, boolean sorted, Document doc, String[] rows) {
+    private QueryResult gatherResultInfoForSelectQuery(String queryString, int queryNr, boolean sorted, Document doc, String[] rows) {
 		Element root = doc.getRootElement();
 
 		//Get head information
 		Element child = root.getChild("head", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"));
 		
 		//Get result rows (<head>)
-		List headChildren = child.getChildren("variable", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"));
+		@SuppressWarnings("unchecked")
+		List<Element> headChildren = child.getChildren("variable", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"));
 		
-		Iterator it = headChildren.iterator();
+		Iterator<Element> it = headChildren.iterator();
 		ArrayList<String> headList = new ArrayList<String>();
 		while(it.hasNext()) {
-			headList.add(((Element)it.next()).getAttributeValue("name"));
+			headList.add((it.next()).getAttributeValue("name"));
 		}
 
-		List resultChildren = root.getChild("results", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"))
+	    @SuppressWarnings("unchecked")
+		List<Element> resultChildren = root.getChild("results", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"))
 								   .getChildren("result", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"));
 		int nrResults = resultChildren.size();
 		
@@ -293,15 +296,16 @@ private int countBytes(InputStream is) {
 		
 		it = resultChildren.iterator();
 		while(it.hasNext()) {
-			Element resultElement = (Element) it.next();
+			Element resultElement = it.next();
 			String result = "";
 			
 			//get the row values and paste it together to one String
 			for(int i=0;i<rows.length;i++) {
-				List bindings = resultElement.getChildren("binding", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"));
+			    @SuppressWarnings("unchecked")
+				List<Element> bindings = resultElement.getChildren("binding", Namespace.getNamespace("http://www.w3.org/2005/sparql-results#"));
 				String rowName = rows[i];
 				for(int j=0;j<bindings.size();j++) {
-					Element binding = (Element)bindings.get(j);
+					Element binding = bindings.get(j);
 					if(binding.getAttributeValue("name").equals(rowName))
 						if(result.equals(""))
 							result += rowName + ": " + ((Element)binding.getChildren().get(0)).getTextNormalize();
