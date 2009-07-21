@@ -46,7 +46,8 @@ public class Person extends BSBMResource {
 		this.countryCode = countryCode;
 	}
 
-	public String toString()
+	@Override
+    public String toString()
 	{
 		return getURIref(nr, publisher);
 	}

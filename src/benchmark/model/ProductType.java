@@ -75,7 +75,8 @@ public class ProductType extends BSBMResource implements Serializable{
 		return depth;
 	}
 	
-	public String toString()
+	@Override
+    public String toString()
 	{
 		StringBuffer s = new StringBuffer();
 		s.append("<");

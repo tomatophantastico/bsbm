@@ -296,7 +296,8 @@ class IntReference {
 		value++;
 	}
 	
-	public String toString() {
+	@Override
+    public String toString() {
 		return (new Integer(value)).toString();
 	}
 }
@@ -313,7 +314,8 @@ class ResultHandler extends DefaultHandler {
 	ResultHandler() {
 	}
 	
-	public void startElement( String namespaceURI,
+	@Override
+    public void startElement( String namespaceURI,
             String localName,   // local name
             String qName,       // qualified name
             Attributes attrs ) {
@@ -325,14 +327,16 @@ class ResultHandler extends DefaultHandler {
 			inQMAttr = true;
 	}
 	
-	public void endElement(String uri, String localName, String qName) {
+	@Override
+    public void endElement(String uri, String localName, String qName) {
 		if(qName.equals(queryAttr))
 			inQueryAttr = false;
 		else if(qName.equals(qmAttr))
 			inQMAttr = false;
 	}
 	
-	public void characters(char[] ch,
+	@Override
+    public void characters(char[] ch,
             int start,
             int length) {
 		if(inQueryAttr) {
@@ -366,10 +370,8 @@ class ResultHandler extends DefaultHandler {
 	}
 }
 
-class StringLengthComparator<T> implements Comparator {
-	public int compare(Object o1, Object o2) {
-		String s1 = (String) o1;
-		String s2 = (String) o2;
+class StringLengthComparator implements Comparator<String> {
+	public int compare(String s1, String s2) {
 		if(s1.length() == s2.length())
 			return 0;
 		else if(s1.length()>s2.length())

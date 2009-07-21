@@ -38,7 +38,8 @@ public class ProductFeature extends BSBMResource {
 		this.comment = comment;
 	}
 
-	public String toString()
+	@Override
+    public String toString()
 	{
 		return getURIref(nr);
 	}

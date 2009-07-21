@@ -95,7 +95,8 @@ public class Offer extends BSBMResource {
 		this.offerWebpage = offerWebpage;
 	}
 	
-	public String toString()
+	@Override
+    public String toString()
 	{
 		StringBuffer s = new StringBuffer();
 		s.append("<");

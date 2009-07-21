@@ -53,7 +53,8 @@ public class Review extends BSBMResource {
 		return ratings;
 	}
 	
-	public String toString()
+	@Override
+    public String toString()
 	{
 		return getURIref(nr, publisher);
 	}
