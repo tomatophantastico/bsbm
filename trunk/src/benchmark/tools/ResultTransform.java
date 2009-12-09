@@ -23,10 +23,13 @@ public class ResultTransform {
 	private final static String[] queries = { "Query 1", "Query 2", "Query 3", "Query 4",
 		 								"Query 5", "Query 6", "Query 7", "Query 8",
 		 								"Query 9", "Query 10", "Query 11", "Query 12"};
-	private static final String[] sizes = { "1M", "25M", "100M" };
+	private static final String[] sizes = { "100m", "200m" };
+	private static final String queryLink = "http://www4.wiwiss.fu-berlin.de/bizer/BerlinSPARQLBenchmark/spec/index.html#queryTripleQ"; 
 //	private static final String[] sizes = { "25M", "100M" };
 	private static HashMap<String, Integer> sizeMap = new HashMap<String, Integer>();
-	static String queryParameter = "aqet";
+	static String tabledef = "<table style=\"text-align: center; width: 60%;\" border=\"1\" cellpadding=\"1\" cellspacing=\"1\">";
+	static String queryParameter = "qps";
+	static int queryParameterPrecision = 1;
 	static String querymixParameter = "qmph";
 	static boolean american = true;//switch . and ,
 	
@@ -160,14 +163,17 @@ public class ResultTransform {
 		IntReference storeInd = new IntReference(0);
 		IntReference queryInd = new IntReference(0);
 		IntReference sizeInd = new IntReference(0);
+		String queryDim = "";
 		
 		//define x-axis
 		if(dimX==0)
 			x = storeInd;
 		else if(dimX==1)
 			x = sizeInd;
-		else if(dimX==2)
+		else if(dimX==2) {
 			x = queryInd;
+			queryDim = "X";
+		}
 		
 		
 		//define y-axis
@@ -175,33 +181,40 @@ public class ResultTransform {
 			y = storeInd;
 		else if(dimY==1)
 			y = sizeInd;
-		else if(dimY==2)
+		else if(dimY==2) {
 			y = queryInd;
+			queryDim = "Y";
+		}
 				
 		//fixed dimension
 		if(fixedDim==0)
 			storeInd = new IntReference(fixedValue);
 		else if(fixedDim==1)
 			sizeInd = new IntReference(fixedValue);
-		else if(fixedDim==2)
+		else if(fixedDim==2) {
 			queryInd = new IntReference(fixedValue);
+			queryDim = "Fixed";
+		}
 		
-		
+		assert queryDim.equals(""): "Query dimension not set!";
 		if(x==null || y==null) {
-			System.err.println("Wrong dimensions");
+			System.err.println("Wrong dimension setting");
 			System.exit(-1);
 		}
 		
 		//Append table head
 		sb.append("<h4>" + name + "</h4>\n");
-		sb.append("<table style=\"text-align: center; width: 80%;\" border=\"1\" cellpadding=\"1\" cellspacing=\"1\">");
+		sb.append(tabledef);
 		sb.append("<b><tr><th>&nbsp;</th>");
 		for(int i=0; i < xDimArray.length;i++)
 			sb.append("<th>"+xDimArray[i]+"</th>");
 		sb.append("</tr>\n");
 		
 		for(y.setValue(0); y.getValue() < yDimArray.length;y.inc()) {
-			sb.append("<tr><td><b>"+yDimArray[y.getValue()]+"</b></td>");
+			String link = yDimArray[y.getValue()];
+			if(queryDim.equals("Y"))
+				link = "<a href=\"" + queryLink + (y.getValue()+1) + "\">"+yDimArray[y.getValue()]+"</a>";
+			sb.append("<tr><td width=\"29%\"><strong>"+link+"</strong></td>");
 			for(x.setValue(0); x.getValue() < xDimArray.length;x.inc()) {
 				String val;
 				if(overall)
@@ -212,10 +225,11 @@ public class ResultTransform {
 					if(val.equals("0.0"))
 						sb.append("<td>not executed</td>");
 					else {
+						String formatString = "%." + queryParameterPrecision + "f";
 						if(american)
-							sb.append("<td>"+val+"</td>");
+							sb.append("<td>"+String.format(formatString, Double.parseDouble(val)).replace(',','.')+"</td>");
 						else
-							sb.append("<td>"+val.replace('.', ',')+"</td>");
+							sb.append("<td>"+String.format(formatString, Double.parseDouble(val)).replace('.',',')+"</td>");
 					}
 				}
 				else
@@ -236,7 +250,7 @@ public class ResultTransform {
 	
 	private static void create_store_size_of_query_table(String[] queries) throws IOException{
 		for(int i=0;i<queries.length;i++) {
-			store_size_of_queries.append(createHtmlTable(queries[i], 1, 0, 2, i, false));
+			store_size_of_queries.append(createHtmlTable("<b><a href=\"" + queryLink + (i+1) + "\">" + queries[i] + "</a></b>", 1, 0, 2, i, false));
 		}
 	}
 	
@@ -247,7 +261,7 @@ public class ResultTransform {
 	
 	private static void create_size_store_of_query_table(String[] queries) throws IOException{
 		for(int i=0;i<queries.length;i++) {
-			size_store_of_queries.append(createHtmlTable(queries[i], 0, 1, 2, i, false));
+			size_store_of_queries.append(createHtmlTable("<a href=\"" + queryLink + (i+1) + "\">" + queries[i] + "</a>", 0, 1, 2, i, false));
 		}
 	}
 	
@@ -260,10 +274,10 @@ public class ResultTransform {
 	//Init Output Files
 	private static void init() {
 		try {
-			query_size_of_stores = new FileWriter("query_and_size_tables_of_stores.html");
-			store_size_of_queries = new FileWriter("store_and_size_tables_of_queries.html");
-			size_store_of_queries = new FileWriter("size_and_store_tables_of_queries.html");
-			store_query_of_size = new FileWriter("store_and_query_tables_of_sizes.html");
+			query_size_of_stores = new FileWriter("bsbm_query_and_size_tables_of_stores.html");
+			store_size_of_queries = new FileWriter("bsbm_store_and_size_tables_of_queries.html");
+			size_store_of_queries = new FileWriter("bsbm_size_and_store_tables_of_queries.html");
+			store_query_of_size = new FileWriter("bsbm_store_and_query_tables_of_sizes.html");
 			overview = new FileWriter("overview.html");
 		} catch(IOException e) {
 			System.err.println("Could not open Input directories!");
