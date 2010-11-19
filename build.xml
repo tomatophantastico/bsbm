@@ -109,7 +109,7 @@
   <target name="compile" depends="java-init,compile-main"  description="Compile project"/>
   
   <target name="compile-main">
-    <mkdir dir="${build.classes.dir}" failonerror="false">/>
+    <mkdir dir="${build.classes.dir}" />
     <javac destdir="${build.classes.dir}"
            debug="${java.debug}"
            deprecation="${java.debuglevel}"
