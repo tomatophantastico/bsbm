@@ -6,6 +6,7 @@ import java.util.*;
 
 import benchmark.vocabulary.BSBM;
 
+@SuppressWarnings("serial")
 public class ProductType extends BSBMResource implements Serializable{
 	private int nr;
 	private String label;

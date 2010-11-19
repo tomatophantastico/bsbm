@@ -25,7 +25,9 @@ public class SQLParameterPool extends AbstractParameterPool {
 	private HashMap<String,Integer> wordHash;
 	private String[] wordList;
 	private Integer[] producerOfProduct;
+	@SuppressWarnings("unused")
 	private Integer[] vendorOfOffer;
+	@SuppressWarnings("unused")
 	private Integer[] ratingsiteOfReview;
 	private Integer productCount;
 	private Integer reviewCount;
