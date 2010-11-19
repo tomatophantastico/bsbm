@@ -515,7 +515,8 @@ public class TestDriver {
 					sparqlEndpoint = args[i];
 				}
 				else {
-					System.err.println("Unknown parameter: " + args[i]);
+					if(!args[i].equals("-help"))
+						System.err.println("Unknown parameter: " + args[i]);
 					printUsageInfos();
 					System.exit(-1);
 				}

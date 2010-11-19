@@ -936,7 +936,7 @@ public class Generator {
 	 * print command line options
 	 */
 	public static void printUsageInfos() {
-		String output = "Usage: java benchmark.generator.Generator <options>\n\n" +
+		String output = "Usage:\n\n" +
 						"Possible options are:\n" +
 						"\t-s <output format>\n" +
 						"\t\twhere <output format>: nt (N-Triples), trig (TriG), ttl (Turtle), sql (MySQL dump), virt (Virtuoso SQL dump), xml (XML dump)\n" +
