@@ -129,6 +129,8 @@ public class Generator {
 			return new SQLSerializer(outputFileName, forwardChaining, "benchmark");
 		else if(t.equals("virt"))
 			return new VirtSerializer(outputFileName, forwardChaining);
+		else if(t.equals("monetdb"))
+			return new MonetDBSerializer(outputFileName, forwardChaining, "benchmark");
 		else
 			return null;
 	}
