@@ -10,19 +10,14 @@ import java.io.*;
 
 public class Turtle implements Serializer {
 	private FileWriter dataFileWriter;
-	private File dataFile;
-	private FileWriter prefixFileWriter;
 	private boolean forwardChaining;
 	private long nrTriples;
+	private boolean haveToGeneratePrefixes = true;
 	
 	public Turtle(String file, boolean forwardChaining)
 	{
 		try{
-			this.prefixFileWriter = new FileWriter(file);
-			
-			this.dataFile = File.createTempFile("BSBM", ".data");
-			this.dataFile.deleteOnExit();
-			this.dataFileWriter = new FileWriter(dataFile);
+			this.dataFileWriter = new FileWriter(file);
 		} catch(IOException e){
 			System.err.println("Could not open File for writing.");
 			System.err.println(e.getMessage());
@@ -30,7 +25,7 @@ public class Turtle implements Serializer {
 		}
 		
 		try {
-			prefixFileWriter.append(getNamespaces());
+			dataFileWriter.append(getNamespaces());
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 		}
@@ -71,15 +66,45 @@ public class Turtle implements Serializer {
 		return result.toString();
 	}
 	
-
+	private void generatePrefixes() {
+		StringBuilder sb = new StringBuilder();
+		for(int i=1; i< Generator.producerOfProduct.size(); i++) {
+			sb.append("@prefix dataFromProducer");
+			sb.append(i);
+			sb.append(": <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer");
+			sb.append(i);
+			sb.append("/> .\n");
+		}
+		for(int i=1; i< Generator.vendorOfOffer.size(); i++) {
+			sb.append("@prefix dataFromVendor");
+			sb.append(i);
+			sb.append(": <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor");
+			sb.append(i);
+			sb.append("/> .\n");
+		}
+		for(int i=1; i< Generator.ratingsiteOfReview.size(); i++) {
+			sb.append("@prefix dataFromRatingSite");
+			sb.append(i);
+			sb.append(": <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromRatingSite");
+			sb.append(i);
+			sb.append("/> .\n");
+		}
+		sb.append("\n");
+		try {
+			dataFileWriter.append(sb.toString());
+		} catch(IOException e) {
+			System.err.println(e.getMessage());
+		}
+	}
+	
 	public void gatherData(ObjectBundle bundle) {
+		if(haveToGeneratePrefixes) {
+			generatePrefixes();
+			haveToGeneratePrefixes = false;
+		}
 		Iterator<BSBMResource> it = bundle.iterator();
 
 		try {
-			String prefix = getPrefixDefinition(bundle);
-			if(prefix!=null)
-				prefixFileWriter.append(prefix);
-			
 			while(it.hasNext())
 			{
 				BSBMResource obj = it.next();
@@ -117,40 +142,6 @@ public class Turtle implements Serializer {
 		}
 	}
 	
-	/*
-	 * Generate Prefix-String
-	 */
-	private String getPrefixDefinition(ObjectBundle bundle) {
-		StringBuffer prefix = new StringBuffer();
-		prefix.append("@prefix ");
-		String publisher = bundle.getPublisher().toLowerCase();
-		
-		if(publisher.contains("datafromvendor")) {
-			prefix.append("dataFromVendor");
-			prefix.append(bundle.getPublisherNum());
-			prefix.append(": <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromVendor");
-			prefix.append(bundle.getPublisherNum());
-			prefix.append("/> .\n");
-		}
-		else if(publisher.contains("datafromratingsite")) {
-			prefix.append("dataFromRatingSite");
-			prefix.append(bundle.getPublisherNum());
-			prefix.append(": <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromRatingSite");
-			prefix.append(bundle.getPublisherNum());
-			prefix.append("/> .\n");
-		}
-		else if(publisher.contains("datafromproducer")) {
-			prefix.append("dataFromProducer");
-			prefix.append(bundle.getPublisherNum());
-			prefix.append(": <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/dataFromProducer");
-			prefix.append(bundle.getPublisherNum());
-			prefix.append("/> .\n");
-		}
-		else
-			return null;
-		
-		return prefix.toString();
-	}
 
 	/*
 	 * Converts the ProductType Object into an TriG String
@@ -747,21 +738,6 @@ public class Turtle implements Serializer {
 		try {
 			dataFileWriter.flush();
 			dataFileWriter.close();
-			
-			prefixFileWriter.append("\n");
-			
-			FileReader data = new FileReader(dataFile);
-			char[] buf = new char[100];
-			int len = 0;
-			while((len=data.read(buf))!=-1) {
-				prefixFileWriter.write(buf, 0, len);
-			}
-			
-			prefixFileWriter.flush();
-			prefixFileWriter.close();
-			data.close();
-			
-			dataFile.delete();
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
@@ -783,8 +759,9 @@ public class Turtle implements Serializer {
 			try {
 			serializer.dataFileWriter.flush();
 			serializer.dataFileWriter.close();
-			} catch(IOException e) {}
-			serializer.dataFile.delete();
+			} catch(IOException e) {
+				
+			}
 		}
 	}
 }
