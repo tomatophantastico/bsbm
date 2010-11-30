@@ -67,9 +67,9 @@ public class Generator {
 
 	private static ArrayList<ProductType> productTypeLeaves;
 	private static ArrayList<ProductType> productTypeNodes;
-	private static ArrayList<Integer> producerOfProduct;//saves producer-product relationship
-	private static ArrayList<Integer> vendorOfOffer;//saves vendor-offer relationship
-	private static ArrayList<Integer> ratingsiteOfReview;//saves review-ratingSite relationship
+	public static ArrayList<Integer> producerOfProduct;//saves producer-product relationship
+	public static ArrayList<Integer> vendorOfOffer;//saves vendor-offer relationship
+	public static ArrayList<Integer> ratingsiteOfReview;//saves review-ratingSite relationship
 	private static HashMap<String,Integer> wordList;//Word list for the Test driver
 	
 	private static Serializer serializer;
@@ -237,14 +237,22 @@ public class Generator {
 		return branchingFactors;
 	}
 	
+	public static Long[] generateSeedsProductType() {
+		Long[] seeds = new Long[2];
+		for(int i=0;i<seeds.length;i++)
+			seeds[i] = seedGenerator.nextLong();
+		
+		return seeds;
+	}
+	
 	/*
 	 * Creates the Product Types and orders them as a tree.
 	 */
-	public static void createProductTypeHierarchy()
+	public static void createProductTypeHierarchy(Long[] seeds)
 	{
 		System.out.println("Generating Product Type Hierarchy...");
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,05,20),new GregorianCalendar(2000,06,23),seedGenerator.nextLong());
-		ValueGenerator valueGen = new ValueGenerator(seedGenerator.nextLong());
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,05,20),new GregorianCalendar(2000,06,23),seeds[0]);
+		ValueGenerator valueGen = new ValueGenerator(seeds[1]);
 		
 		ObjectBundle bundle = new ObjectBundle(serializer);
 		
@@ -317,15 +325,23 @@ public class Generator {
 		System.out.println("Product Type Hierarchy of depth " + branchFt.length + " with " + (productTypeLeaves.size()+productTypeNodes.size()) + " Product Types generated.\n");
 	}
 	
+	public static Long[] generateSeedsProductFeature() {
+		Long[] seeds = new Long[2];
+		for(int i=0;i<seeds.length;i++)
+			seeds[i] = seedGenerator.nextLong();
+		
+		return seeds;
+	}
+	
 	/*
 	 * Create Product Features
 	 */
-	public static void createProductFeatures()
+	public static void createProductFeatures(Long[] seeds)
 	{
 		System.out.println("Generating Product Features...");
 		ObjectBundle bundle = new ObjectBundle(serializer);
-		ValueGenerator valueGen = new ValueGenerator(seedGenerator.nextLong());
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,05,20),new GregorianCalendar(2000,06,23),seedGenerator.nextLong());
+		ValueGenerator valueGen = new ValueGenerator(seeds[0]);
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,05,20),new GregorianCalendar(2000,06,23),seeds[1]);
 		
 		//Compute count range of Features per Product Type for every depth
 		int depth = productTypeLeaves.get(0).getDepth();
@@ -436,24 +452,50 @@ public class Generator {
 	}
 
 	/*
-	 * Creates the Producers and their Products
+	 * Generate seeds for producer data
 	 */
-	public static void createProducerData()
-	{
-		System.out.println("Generating Producers and Products...");
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,07,20),new GregorianCalendar(2005,06,23),seedGenerator.nextLong());
-		ValueGenerator valueGen = new ValueGenerator(seedGenerator.nextLong());
-		RandomBucket countryGen = createCountryGenerator(seedGenerator.nextLong());
+	public static Long[] generateSeedsProducer() {
+		Long[] seeds = new Long[5];
+		for(int i=0;i<5;i++)
+			seeds[i] = seedGenerator.nextLong();
 		
-		
-		NormalDistGenerator productCountGen = new NormalDistGenerator(3,1,avgProductsPerProducer,seedGenerator.nextLong());
+		return seeds;
+	}
+	
+	/*
+	 * Generates the distribution data for producers
+	 */
+	public static void generateProducerDistribution(Long[] seeds) {
+		NormalDistGenerator productCountGen = new NormalDistGenerator(3,1,avgProductsPerProducer,seeds[3]);
 		Integer productNr = 1;
 		
-		Integer producerNr = 1;
+		while(productNr<=productCount) {
+			//Now generate Products for this Producer
+			int hasNrProducts = productCountGen.getValue();
+			if(productNr+hasNrProducts-1 > productCount)
+				hasNrProducts = productCount - productNr + 1;
+			productNr += hasNrProducts;
+			producerOfProduct.add(productNr-1);
+		}
+	}
+	
+	/*
+	 * Creates the Producers and their Products
+	 */
+	public static void createProducerData(Long[] seeds)
+	{
+		System.out.println("Generating Producers and Products...");
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,07,20),new GregorianCalendar(2005,06,23),seeds[0]);
+		ValueGenerator valueGen = new ValueGenerator(seeds[1]);
+		RandomBucket countryGen = createCountryGenerator(seeds[2]);
+		Random productSeedGen = new Random(seeds[4]);
 		
 		ObjectBundle bundle = new ObjectBundle(serializer);
 		
-		while(productNr<=productCount)
+		int productNr = 1;
+		int producerNr = 1;
+		
+		while(producerNr<producerOfProduct.size())
 		{
 			//Generate Producer data
 			int labelNrWords = valueGen.randomInt(1, 3);
@@ -484,18 +526,13 @@ public class Generator {
 			
 			bundle.add(p);
 			
-			//Now generate Products for this Producer
-			int hasNrProducts = productCountGen.getValue();
-			if(productNr+hasNrProducts-1 > productCount)
-				hasNrProducts = productCount - productNr + 1;
-			
-			createProductsOfProducer(bundle, producerNr, productNr, hasNrProducts);
+			int hasNrProducts = producerOfProduct.get(producerNr) - producerOfProduct.get(producerNr-1);
+			createProductsOfProducer(bundle, producerNr, productNr, hasNrProducts, productSeedGen);
 			
 			//All data for current producer generated -> commit (Important for NG-Model).
 			bundle.commitToSerializer();
 			
 			productNr += hasNrProducts;
-			producerOfProduct.add(productNr-1);
 			producerNr++;
 		}
 		System.out.println((producerNr - 1) + " Producers and " + (productNr - 1) + " Products have been generated.\n");
@@ -504,28 +541,28 @@ public class Generator {
 	/*
 	 * Creates the Products of the specified producer
 	 */
-	private static void createProductsOfProducer(ObjectBundle bundle, Integer producer, Integer productNr, Integer hasNrProducts)
+	private static void createProductsOfProducer(ObjectBundle bundle, Integer producer, Integer productNr, Integer hasNrProducts, Random productSeedGen)
 	{
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2006,12,23),seedGenerator.nextLong());
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2006,12,23),productSeedGen.nextLong());
 		//We want to record used words for product labels
 		dictionary1.activateLogging(wordList);
-		ValueGenerator valueGen = new ValueGenerator(seedGenerator.nextLong());
-		NormalDistRangeGenerator productTypeBroker = new NormalDistRangeGenerator(0,1,productTypeLeaves.size(),2, seedGenerator.nextLong());
-		NormalDistRangeGenerator numPropertyGen = new NormalDistRangeGenerator(0,1,2000,2, seedGenerator.nextLong());
+		ValueGenerator valueGen = new ValueGenerator(productSeedGen.nextLong());
+		NormalDistRangeGenerator productTypeBroker = new NormalDistRangeGenerator(0,1,productTypeLeaves.size(),2, productSeedGen.nextLong());
+		NormalDistRangeGenerator numPropertyGen = new NormalDistRangeGenerator(0,1,2000,2, productSeedGen.nextLong());
 		
 		//For assigning a type out of 3 possible types
-		RandomBucket productPropertyTypeGen = new RandomBucket(3,seedGenerator.nextLong());
+		RandomBucket productPropertyTypeGen = new RandomBucket(3,productSeedGen.nextLong());
 		productPropertyTypeGen.add(40, new Integer(1));
 		productPropertyTypeGen.add(20, new Integer(2));
 		productPropertyTypeGen.add(40, new Integer(3));
 		
 		//For choosing ProductFeatures and ProductProperties
-		RandomBucket true25 = new RandomBucket(2,seedGenerator.nextLong());
+		RandomBucket true25 = new RandomBucket(2,productSeedGen.nextLong());
 		true25.add(75, new Boolean(false));
 		true25.add(25, new Boolean(true));
 		
 		//For choosing ProductProperties
-		RandomBucket true50 = new RandomBucket(2,seedGenerator.nextLong());
+		RandomBucket true50 = new RandomBucket(2,productSeedGen.nextLong());
 		true50.add(50, new Boolean(false));
 		true50.add(50, new Boolean(true));
 
@@ -669,16 +706,44 @@ public class Generator {
 	}
 	
 	/*
+	 * Generate seeds for vendor data
+	 */
+	public static Long[] generateSeedsVendor() {
+		Long[] seeds = new Long[5];
+		for(int i=0;i<5;i++)
+			seeds[i] = seedGenerator.nextLong();
+		
+		return seeds;
+	}
+	
+	/*
+	 * Generates the distribution data for producers
+	 */
+	public static void generateVendorDistribution(Long[] seeds) {
+		NormalDistGenerator offerCountGenerator = new NormalDistGenerator(3,1,avgOffersPerVendor,seeds[3]);
+
+		Integer offerNr = 1;
+		
+		while(offerNr<=offerCount) {
+			Integer offerCountVendor = offerCountGenerator.getValue();
+			if(offerNr+offerCountVendor-1 > offerCount)
+				offerCountVendor = offerCount - offerNr + 1;
+			
+			offerNr += offerCountVendor;
+			vendorOfOffer.add(offerNr-1);
+		}
+	}
+	
+	/*
 	 * Creates the Vendors
 	 */
-	public static void createVendorData()
+	public static void createVendorData(Long[] seeds)
 	{
 		System.out.println("Generating Vendors and their Offers...");
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2006,12,23),seedGenerator.nextLong());
-		ValueGenerator valueGen = new ValueGenerator(seedGenerator.nextLong());
-		RandomBucket countryGen = createCountryGenerator(seedGenerator.nextLong());
-		NormalDistGenerator offerCountGenerator = new NormalDistGenerator(3,1,avgOffersPerVendor,seedGenerator.nextLong());
-		
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2006,12,23),seeds[0]);
+		ValueGenerator valueGen = new ValueGenerator(seeds[1]);
+		RandomBucket countryGen = createCountryGenerator(seeds[2]);
+		Random offerSeedGen = new Random(seeds[4]);
 		
 		ObjectBundle bundle = new ObjectBundle(serializer);
 		
@@ -717,17 +782,14 @@ public class Generator {
 			bundle.add(v);
 			
 			//Get number of offers for this Vendor
-			Integer offerCountVendor = offerCountGenerator.getValue();
-			if(offerNr+offerCountVendor-1 > offerCount)
-				offerCountVendor = offerCount - offerNr + 1;
-			
-			createOffersOfVendor(bundle, vendorNr, offerNr, offerCountVendor, valueGen);
+			Integer offerCountVendor = vendorOfOffer.get(vendorNr) - vendorOfOffer.get(vendorNr-1);;
+	
+			createOffersOfVendor(bundle, vendorNr, offerNr, offerCountVendor, valueGen, offerSeedGen);
 			
 			//All data for current producer generated -> commit (Important for NG-Model).
 			bundle.commitToSerializer();
 			
 			offerNr += offerCountVendor;
-			vendorOfOffer.add(offerNr-1);
 			vendorNr++;
 		}
 		System.out.println((vendorNr-1) + " Vendors and " + (offerNr - 1) + " Offers have been generated.\n");
@@ -736,11 +798,11 @@ public class Generator {
 	/*
 	 * Creates the offers for a product
 	 */
-	public static void createOffersOfVendor(ObjectBundle bundle, Integer vendor, Integer offerNr, Integer hasNrOffers, ValueGenerator valueGen)
+	public static void createOffersOfVendor(ObjectBundle bundle, Integer vendor, Integer offerNr, Integer hasNrOffers, ValueGenerator valueGen, Random offerSeedGen)
 	{
-		NormalDistRangeGenerator deliveryDaysGen = new NormalDistRangeGenerator(2,1,21,14.2,seedGenerator.nextLong());
-		NormalDistRangeGenerator productNrGen = new NormalDistRangeGenerator(2,1,productCount,4,seedGenerator.nextLong());
-		DateGenerator dateGen = new DateGenerator(seedGenerator.nextLong());
+		NormalDistRangeGenerator deliveryDaysGen = new NormalDistRangeGenerator(2,1,21,14.2,offerSeedGen.nextLong());
+		NormalDistRangeGenerator productNrGen = new NormalDistRangeGenerator(2,1,productCount,4,offerSeedGen.nextLong());
+		DateGenerator dateGen = new DateGenerator(offerSeedGen.nextLong());
 		
 		for(int nr=offerNr;nr<offerNr+hasNrOffers;nr++)
 		{
@@ -769,25 +831,70 @@ public class Generator {
 	}
 
 	/*
+	 * Generate seeds for rating site data
+	 */
+	public static Long[] generateSeedsRatingSite() {
+		Long[] seeds = new Long[8];
+		for(int i=0;i<8;i++)
+			seeds[i] = seedGenerator.nextLong();
+		
+		return seeds;
+	}
+	
+	/*
+	 * Generates the distribution data for producers
+	 */
+	public static void generateRatingSiteDistribution(Long[] seeds) {
+		NormalDistGenerator reviewCountPRSGen = new NormalDistGenerator(3,1, avgReviewsPerRatingSite ,seeds[6]);
+		NormalDistGenerator reviewCountPPGen = new NormalDistGenerator(3,1, avgReviewsPerPerson ,seeds[7]);
+		
+		Integer reviewNr = 1;
+		Integer personNr = 1;
+		Integer ratingSiteNr = 1;
+		
+		while(reviewNr<=reviewCount) {
+			//Get number of reviews for this Rating Site
+			Integer reviewCountRatingSite = reviewCountPRSGen.getValue();
+			if(reviewNr+reviewCountRatingSite > reviewCount)
+				reviewCountRatingSite = reviewCount - reviewNr + 1;
+			
+			Integer maxReviewForRatingSite = reviewNr+reviewCountRatingSite;
+
+			while(reviewNr < maxReviewForRatingSite)
+			{
+				Integer reviewCountPerson = reviewCountPPGen.getValue0();
+				if(reviewNr+reviewCountPerson > maxReviewForRatingSite)
+					reviewCountPerson = maxReviewForRatingSite - reviewNr;
+				
+				personNr++;
+				reviewNr += reviewCountPerson;
+			}
+			
+			ratingsiteOfReview.add(reviewNr-1);
+			ratingSiteNr++;
+		}
+	}
+	
+	/*
 	 * Creates the Reviewers
 	 */
-	public static void createRatingSiteData()
+	public static void createRatingSiteData(Long[] seeds)
 	{
 		System.out.println("Generating RatingSite Data: Reviewers and Reviews... ");
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2008,5,20),new GregorianCalendar(2008,8,23),seedGenerator.nextLong());
-		ValueGenerator valueGen = new ValueGenerator(seedGenerator.nextLong());
-		RandomBucket countryGen = createCountryGenerator(seedGenerator.nextLong());
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2008,5,20),new GregorianCalendar(2008,8,23),seeds[0]);
+		ValueGenerator valueGen = new ValueGenerator(seeds[1]);
+		RandomBucket countryGen = createCountryGenerator(seeds[2]);
 		
 		//For Review Generation
-		DateGenerator reviewDateGen = new DateGenerator(182,today,seedGenerator.nextLong());
-		RandomBucket true70 = new RandomBucket(2, seedGenerator.nextLong());
-		NormalDistRangeGenerator productNrGen = new NormalDistRangeGenerator(2,1,productCount,4,seedGenerator.nextLong());
+		DateGenerator reviewDateGen = new DateGenerator(182,today,seeds[3]);
+		RandomBucket true70 = new RandomBucket(2, seeds[4]);
+		NormalDistRangeGenerator productNrGen = new NormalDistRangeGenerator(2,1,productCount,4,seeds[5]);
 		true70.add(70, new Boolean(true));
 		true70.add(30, new Boolean(false));
 
 		
-		NormalDistGenerator reviewCountPRSGen = new NormalDistGenerator(3,1, avgReviewsPerRatingSite ,seedGenerator.nextLong());
-		NormalDistGenerator reviewCountPPGen = new NormalDistGenerator(3,1, avgReviewsPerPerson ,seedGenerator.nextLong());
+		NormalDistGenerator reviewCountPRSGen = new NormalDistGenerator(3,1, avgReviewsPerRatingSite ,seeds[6]);
+		NormalDistGenerator reviewCountPPGen = new NormalDistGenerator(3,1, avgReviewsPerPerson ,seeds[7]);
 		
 		Integer reviewNr = 1;
 		Integer personNr = 1;
@@ -850,7 +957,6 @@ public class Generator {
 			//All data for current producer generated -> commit (Important for NG-Model).
 			bundle.commitToSerializer();
 			
-			ratingsiteOfReview.add(reviewNr-1);
 			ratingSiteNr++;
 		}
 		System.out.println((ratingSiteNr - 1) + " Rating Sites with " + (personNr - 1) + " Persons and " + (reviewNr-1) + " Reviews have been generated.\n");
@@ -962,11 +1068,21 @@ public class Generator {
 		processProgramParameters(args);
 		init();
 		
-		createProductTypeHierarchy();
-		createProductFeatures();
-		createProducerData();
-		createVendorData();
-		createRatingSiteData();
+		Long[] ptSeeds = generateSeedsProductType();
+		Long[] pfSeeds = generateSeedsProductFeature();
+		Long[] producerSeeds = generateSeedsProducer();
+		Long[] vendorSeeds = generateSeedsVendor();
+		Long[] rtSeeds = generateSeedsRatingSite();
+		
+		generateProducerDistribution(producerSeeds);
+		generateVendorDistribution(vendorSeeds);
+		generateRatingSiteDistribution(rtSeeds);
+		
+		createProductTypeHierarchy(ptSeeds);
+		createProductFeatures(pfSeeds);
+		createProducerData(producerSeeds);
+		createVendorData(vendorSeeds);
+		createRatingSiteData(rtSeeds);
 		
 		serializer.serialize();
 		writeTestDriverData();
