@@ -1,122 +1,19 @@
 package benchmark.testdriver;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.ObjectInputStream;
 import java.util.ArrayList;
 import java.util.GregorianCalendar;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Random;
 
 import benchmark.generator.DateGenerator;
-import benchmark.generator.Generator;
-import benchmark.generator.RandomBucket;
-import benchmark.generator.ValueGenerator;
 import benchmark.model.ProductType;
 
 public class SQLParameterPool extends AbstractParameterPool {
-	private ValueGenerator valueGen;
-	private RandomBucket countryGen;
-	private GregorianCalendar currentDate;
-	private String currentDateString;
-	private ProductType[] productTypeLeaves;
-	private HashMap<String,Integer> wordHash;
-	private String[] wordList;
-	private Integer[] producerOfProduct;
-	@SuppressWarnings("unused")
-	private Integer[] vendorOfOffer;
-	@SuppressWarnings("unused")
-	private Integer[] ratingsiteOfReview;
-	private Integer productCount;
-	private Integer reviewCount;
-	private Integer offerCount;
 	
 	public SQLParameterPool(File resourceDirectory, Long seed) {
-		Random seedGen = new Random(seed);
-		valueGen = new ValueGenerator(seedGen.nextLong());
-		countryGen = Generator.createCountryGenerator(seedGen.nextLong());
-		
-		init(resourceDirectory);
+		init(resourceDirectory, seed);
 	}
-	
-	private void init(File resourceDir) {
-		//Read in the Product Type hierarchy from resourceDir/pth.dat
-		ObjectInputStream productTypeInput;
-		File pth = new File(resourceDir, "pth.dat");
-		try {
-			productTypeInput = new ObjectInputStream(new FileInputStream(pth));
-			productTypeLeaves = (ProductType[]) productTypeInput.readObject();
-		} catch(IOException e) {
-			System.err.println("Could not open or process file " + pth.getAbsolutePath());
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
-		catch(ClassNotFoundException e) { System.err.println(e); }
 
-		//Product-Producer Relationships from resourceDir/pp.dat
-		File pp = new File(resourceDir, "pp.dat");
-		ObjectInputStream productProducerInput;
-		try {
-			productProducerInput = new ObjectInputStream(new FileInputStream(pp));
-			producerOfProduct = (Integer[]) productProducerInput.readObject();
-			scalefactor = producerOfProduct[producerOfProduct.length-1];
-		} catch(IOException e) {
-			System.err.println("Could not open or process file " + pp.getAbsolutePath());
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
-		catch(ClassNotFoundException e) { System.err.println(e); }
-	
-		//Offer-Vendor Relationships from resourceDir/vo.dat
-		File vo = new File(resourceDir, "vo.dat");
-		ObjectInputStream offerVendorInput;
-		try {
-			offerVendorInput = new ObjectInputStream(new FileInputStream(vo));
-			vendorOfOffer = (Integer[]) offerVendorInput.readObject();
-		} catch(IOException e) {
-			System.err.println("Could not open or process file " + pp.getAbsolutePath());
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
-		catch(ClassNotFoundException e) { System.err.println(e); }
-		
-		//Review-Rating Site Relationships from resourceDir/rr.dat
-		File rr = new File(resourceDir, "rr.dat");
-		ObjectInputStream reviewRatingsiteInput;
-		try {
-			reviewRatingsiteInput = new ObjectInputStream(new FileInputStream(rr));
-			ratingsiteOfReview = (Integer[]) reviewRatingsiteInput.readObject();
-		} catch(IOException e) {
-			System.err.println("Could not open or process file " + rr.getAbsolutePath());
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
-		catch(ClassNotFoundException e) { System.err.println(e); }
-		//Current date and words of Product labels from resourceDir/cdlw.dat
-		File cdlw = new File(resourceDir, "cdlw.dat");
-		ObjectInputStream currentDateAndLabelWordsInput;
-		try {
-			currentDateAndLabelWordsInput = new ObjectInputStream(new FileInputStream(cdlw));
-			productCount = currentDateAndLabelWordsInput.readInt();
-			reviewCount = currentDateAndLabelWordsInput.readInt();
-			offerCount = currentDateAndLabelWordsInput.readInt();
-			currentDate = (GregorianCalendar) currentDateAndLabelWordsInput.readObject();
-			currentDateString = DateGenerator.formatDate(currentDate);
-			
-			@SuppressWarnings("unchecked")
-			HashMap<String, Integer> x = (HashMap<String, Integer>)currentDateAndLabelWordsInput.readObject();
-			wordHash = x ; 
-			wordList = wordHash.keySet().toArray(new String[0]);
-		} catch(IOException e) {
-			System.err.println("Could not open or process file " + cdlw.getAbsolutePath());
-			System.err.println(e.getMessage());
-			System.exit(-1);
-		}
-		catch(ClassNotFoundException e) { System.err.println(e); }
-	}
-	
 	/*
 	 * (non-Javadoc)
 	 * @see benchmark.testdriver.AbstractParameterPool#getParametersForQuery(benchmark.testdriver.Query)
@@ -240,5 +137,11 @@ public class SQLParameterPool extends AbstractParameterPool {
 	 */
 	private Integer getProductPropertyNumeric() {
 		return valueGen.randomInt(1, 500);
+	}
+
+
+	@Override
+	protected String formatDateString(GregorianCalendar date) {
+		return DateGenerator.formatDate(currentDate);
 	}
 }
