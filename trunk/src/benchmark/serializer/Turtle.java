@@ -9,15 +9,27 @@ import benchmark.generator.*;
 import java.io.*;
 
 public class Turtle implements Serializer {
-	private FileWriter dataFileWriter;
+	private FileWriter[] dataFileWriter;
 	private boolean forwardChaining;
 	private long nrTriples;
 	private boolean haveToGeneratePrefixes = true;
+	int currentWriter = 0;
 	
 	public Turtle(String file, boolean forwardChaining)
 	{
+		this(file, forwardChaining, 1);
+	}
+	
+	public Turtle(String file, boolean forwardChaining, int nrOfOutputFiles)
+	{
 		try{
-			this.dataFileWriter = new FileWriter(file);
+			dataFileWriter = new FileWriter[nrOfOutputFiles];
+			if(nrOfOutputFiles==1)
+				this.dataFileWriter[0] = new FileWriter(file + ".ttl");
+			else
+				for(int i=1;i<=nrOfOutputFiles;i++)
+					dataFileWriter[i-1] = new FileWriter(file + i + ".ttl");
+				
 		} catch(IOException e){
 			System.err.println("Could not open File for writing.");
 			System.err.println(e.getMessage());
@@ -25,7 +37,8 @@ public class Turtle implements Serializer {
 		}
 		
 		try {
-			dataFileWriter.append(getNamespaces());
+			for(int i=0;i<nrOfOutputFiles;i++)
+				dataFileWriter[i].append(getNamespaces());
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 		}
@@ -91,7 +104,9 @@ public class Turtle implements Serializer {
 		}
 		sb.append("\n");
 		try {
-			dataFileWriter.append(sb.toString());
+			String tempString = sb.toString();
+			for(int i=0;i<dataFileWriter.length;i++)
+				dataFileWriter[i].append(tempString);
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 		}
@@ -110,31 +125,31 @@ public class Turtle implements Serializer {
 				BSBMResource obj = it.next();
 	
 				if(obj instanceof ProductType){
-					dataFileWriter.append(convertProductType((ProductType)obj));
+					dataFileWriter[currentWriter].append(convertProductType((ProductType)obj));
 				}
 				else if(obj instanceof Offer){
-					dataFileWriter.append(convertOffer((Offer)obj));
+					dataFileWriter[currentWriter].append(convertOffer((Offer)obj));
 				}
 				else if(obj instanceof Product){
-					dataFileWriter.append(convertProduct((Product)obj));
+					dataFileWriter[currentWriter].append(convertProduct((Product)obj));
 				}
 				else if(obj instanceof Person){
-					dataFileWriter.append(convertPerson((Person)obj, bundle));
+					dataFileWriter[currentWriter].append(convertPerson((Person)obj, bundle));
 				}
 				else if(obj instanceof Producer){
-					dataFileWriter.append(convertProducer((Producer)obj));
+					dataFileWriter[currentWriter].append(convertProducer((Producer)obj));
 				}
 				else if(obj instanceof ProductFeature){
-					dataFileWriter.append(convertProductFeature((ProductFeature)obj));
+					dataFileWriter[currentWriter].append(convertProductFeature((ProductFeature)obj));
 				}
 				else if(obj instanceof Vendor){
-					dataFileWriter.append(convertVendor((Vendor)obj));
+					dataFileWriter[currentWriter].append(convertVendor((Vendor)obj));
 				}
 				else if(obj instanceof Review){
-					dataFileWriter.append(convertReview((Review)obj, bundle));
+					dataFileWriter[currentWriter].append(convertReview((Review)obj, bundle));
 				}
+				currentWriter = (currentWriter + 1) % dataFileWriter.length;
 			}
-			
 		}catch(IOException e){
 			System.err.println("Could not write into File!");
 			System.err.println(e.getMessage());
@@ -736,8 +751,10 @@ public class Turtle implements Serializer {
 	public void serialize() {
 		//Close files
 		try {
-			dataFileWriter.flush();
-			dataFileWriter.close();
+			for(int i=0;i<dataFileWriter.length;i++) {
+				dataFileWriter[i].flush();
+				dataFileWriter[i].close();
+			}
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
@@ -756,11 +773,14 @@ public class Turtle implements Serializer {
 		
 		@Override
         public void run() {
-			try {
-			serializer.dataFileWriter.flush();
-			serializer.dataFileWriter.close();
-			} catch(IOException e) {
-				
+			
+			for(int i=0;i<dataFileWriter.length;i++) {
+				try {
+					serializer.dataFileWriter[i].flush();
+					serializer.dataFileWriter[i].close();
+				} catch(IOException e) {
+					// Do nothing
+				}
 			}
 		}
 	}
