@@ -35,6 +35,7 @@ public class Generator {
 	private static String outputDirectory = "td_data";
 	private static String outputFileName = "dataset";
 	private static String serializerType = "nt"; 
+	private static int nrOfOutputFiles = 1;
 	
 	//Ratios of different Resources
 	static final int productsVendorsRatio = 100;
@@ -118,11 +119,11 @@ public class Generator {
 	private static Serializer getSerializer(String type) {
 		String t = type.toLowerCase();
 		if(t.equals("nt"))
-			return new NTriples(outputFileName + ".nt", forwardChaining);
+			return new NTriples(outputFileName, forwardChaining, nrOfOutputFiles);
 		else if(t.equals("trig"))
 			return new TriG(outputFileName + ".trig", forwardChaining);
 		else if(t.equals("ttl"))
-			return new Turtle(outputFileName + ".ttl", forwardChaining);
+			return new Turtle(outputFileName, forwardChaining, nrOfOutputFiles);
 		else if(t.equals("xml"))
 			return new XMLSerializer(outputFileName + ".xml", forwardChaining);
 		else if(t.equals("sql"))
@@ -1025,6 +1026,9 @@ public class Generator {
 				else if(args[i].equals("-fn")) {
 					outputFileName = args[i++ + 1];
 				}
+				else if(args[i].equals("-nof")) {
+					nrOfOutputFiles = Integer.parseInt(args[i++ + 1]);
+				}
 				else {
 					printUsageInfos();
 					System.exit(-1);
@@ -1047,7 +1051,8 @@ public class Generator {
 		String output = "Usage:\n\n" +
 						"Possible options are:\n" +
 						"\t-s <output format>\n" +
-						"\t\twhere <output format>: nt (N-Triples), trig (TriG), ttl (Turtle), sql (MySQL dump), virt (Virtuoso SQL dump), xml (XML dump)\n" +
+						"\t\twhere <output format>: nt (N-Triples), trig (TriG), ttl (Turtle), sql (MySQL dump),\n" +
+						"\t\t\tvirt (Virtuoso SQL dump), monetdb (SQL), xml (XML dump)\n" +
 						"\t\tdefault: nt\n" +
 						"\t\tNote:\tBy chosing a named graph output format like TriG,\n\t\t\ta named graph model gets generated.\n" +
 						"\t-pc <product count>\n" +
@@ -1058,7 +1063,10 @@ public class Generator {
 						"\t\tdefault: td_data\n" +
 						"\t-fn <dataset file name>\n" +
 						"\t\tThe file name without the output format suffix\n" +
-						"\t\tdefault: dataset\n";
+						"\t\tdefault: dataset\n" +
+						"\t-nof <number of output files>\n" +
+						"\t\tThe number of output files. Only for -s nt or ttl\n" +
+						"\t\tdefault: 1\n";
 		System.out.print(output);
 	}
 	/**

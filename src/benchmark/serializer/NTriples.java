@@ -8,14 +8,25 @@ import java.io.*;
 import java.util.*;
 
 public class NTriples implements Serializer {
-	private FileWriter fileWriter;
+	private FileWriter[] fileWriter;
 	private boolean forwardChaining;
 	private long nrTriples;
+	private int currentWriter = 0;
 	
 	public NTriples(String file, boolean forwardChaining)
 	{
+		this(file, forwardChaining, 1);
+	}
+	
+	public NTriples(String file, boolean forwardChaining, int nrOfOutputFiles)
+	{
 		try{
-			fileWriter = new FileWriter(file);
+			fileWriter = new FileWriter[nrOfOutputFiles];
+			if(nrOfOutputFiles==1)
+				fileWriter[0] = new FileWriter(file + ".nt");
+			else
+				for(int i=1;i<=nrOfOutputFiles;i++)
+					fileWriter[i-1] = new FileWriter(file + i + ".nt");
 		} catch(IOException e){
 			System.err.println("Could not open File");
 			System.exit(-1);
@@ -33,28 +44,28 @@ public class NTriples implements Serializer {
 			BSBMResource obj = it.next();
 			try{
 				if(obj instanceof ProductType){
-					fileWriter.append(convertProductType((ProductType)obj));
+					fileWriter[currentWriter].append(convertProductType((ProductType)obj));
 				}
 				else if(obj instanceof Offer){
-					fileWriter.append(convertOffer((Offer)obj));
+					fileWriter[currentWriter].append(convertOffer((Offer)obj));
 				}
 				else if(obj instanceof Product){
-					fileWriter.append(convertProduct((Product)obj));
+					fileWriter[currentWriter].append(convertProduct((Product)obj));
 				}
 				else if(obj instanceof Person){
-					fileWriter.append(convertPerson((Person)obj));
+					fileWriter[currentWriter].append(convertPerson((Person)obj));
 				}
 				else if(obj instanceof Producer){
-					fileWriter.append(convertProducer((Producer)obj));
+					fileWriter[currentWriter].append(convertProducer((Producer)obj));
 				}
 				else if(obj instanceof ProductFeature){
-					fileWriter.append(convertProductFeature((ProductFeature)obj));
+					fileWriter[currentWriter].append(convertProductFeature((ProductFeature)obj));
 				}
 				else if(obj instanceof Vendor){
-					fileWriter.append(convertVendor((Vendor)obj));
+					fileWriter[currentWriter].append(convertVendor((Vendor)obj));
 				}
 				else if(obj instanceof Review){
-					fileWriter.append(convertReview((Review)obj));
+					fileWriter[currentWriter].append(convertReview((Review)obj));
 				}
 			}
 			catch(IOException e){
@@ -62,6 +73,7 @@ public class NTriples implements Serializer {
 				System.err.println(e.getMessage());
 				System.exit(-1);
 			}
+			currentWriter = (currentWriter + 1) % fileWriter.length;
 		}
 	}
 	
@@ -678,10 +690,12 @@ public class NTriples implements Serializer {
 	
 
 	public void serialize() {
-		//Close File
+		//Close Files
 		try {
-			fileWriter.flush();
-			fileWriter.close();
+			for(int i=0;i<fileWriter.length;i++) {
+				fileWriter[i].flush();
+				fileWriter[i].close();
+			}
 		} catch(IOException e) {
 			System.err.println(e.getMessage());
 			System.exit(-1);
