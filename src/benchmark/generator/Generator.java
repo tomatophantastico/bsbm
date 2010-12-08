@@ -59,10 +59,8 @@ public class Generator {
 	 
 	static GregorianCalendar today = new GregorianCalendar(2008,5,20);//Date of 2008-06-20
 	
-	static int producerCount;
 	static int offerCount;
 	static int reviewCount;
-	static int ratingSiteCount;
 	
 	static boolean namedGraph;
 
@@ -91,7 +89,7 @@ public class Generator {
 		ratingsiteOfReview = new ArrayList<Integer>();
 		ratingsiteOfReview.add(0);
 		
-		Generator.serializer = getSerializer(serializerType);
+		serializer = getSerializer(serializerType);
 		if(serializer==null) {
 			System.err.println("Invalid Serializer chosen.");
 			System.exit(-1);
@@ -99,8 +97,11 @@ public class Generator {
 
 		namedGraph = isNamedGraphSerializer();
 		
-		Generator.outputDir = new File(outputDirectory);
-		outputDir.mkdirs();
+		outputDir = new File(outputDirectory);
+		if(outputDir.mkdirs()) {
+			System.err.println("Could not create directories for test data output.");
+			System.exit(-1);
+		}
 		wordList = new HashMap<String, Integer>();
 		
 		dictionary1 = new TextGenerator(dictionary1File, seedGenerator.nextLong());
@@ -544,7 +545,7 @@ public class Generator {
 	 */
 	private static void createProductsOfProducer(ObjectBundle bundle, Integer producer, Integer productNr, Integer hasNrProducts, Random productSeedGen)
 	{
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2006,12,23),productSeedGen.nextLong());
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2007,0,23),productSeedGen.nextLong());
 		//We want to record used words for product labels
 		dictionary1.activateLogging(wordList);
 		ValueGenerator valueGen = new ValueGenerator(productSeedGen.nextLong());
@@ -553,19 +554,19 @@ public class Generator {
 		
 		//For assigning a type out of 3 possible types
 		RandomBucket productPropertyTypeGen = new RandomBucket(3,productSeedGen.nextLong());
-		productPropertyTypeGen.add(40, new Integer(1));
-		productPropertyTypeGen.add(20, new Integer(2));
-		productPropertyTypeGen.add(40, new Integer(3));
+		productPropertyTypeGen.add(40, Integer.valueOf(1));
+		productPropertyTypeGen.add(20, Integer.valueOf(2));
+		productPropertyTypeGen.add(40, Integer.valueOf(3));
 		
 		//For choosing ProductFeatures and ProductProperties
 		RandomBucket true25 = new RandomBucket(2,productSeedGen.nextLong());
-		true25.add(75, new Boolean(false));
-		true25.add(25, new Boolean(true));
+		true25.add(75, Boolean.valueOf(false));
+		true25.add(25, Boolean.valueOf(true));
 		
 		//For choosing ProductProperties
 		RandomBucket true50 = new RandomBucket(2,productSeedGen.nextLong());
-		true50.add(50, new Boolean(false));
-		true50.add(50, new Boolean(true));
+		true50.add(50, Boolean.valueOf(false));
+		true50.add(50, Boolean.valueOf(true));
 
 		for(int nr = productNr; nr<productNr+hasNrProducts;nr++)
 		{
@@ -741,7 +742,7 @@ public class Generator {
 	public static void createVendorData(Long[] seeds)
 	{
 		System.out.println("Generating Vendors and their Offers...");
-		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2006,12,23),seeds[0]);
+		DateGenerator publishDateGen = new DateGenerator(new GregorianCalendar(2000,9,20),new GregorianCalendar(2007,0,23),seeds[0]);
 		ValueGenerator valueGen = new ValueGenerator(seeds[1]);
 		RandomBucket countryGen = createCountryGenerator(seeds[2]);
 		Random offerSeedGen = new Random(seeds[4]);
@@ -890,8 +891,8 @@ public class Generator {
 		DateGenerator reviewDateGen = new DateGenerator(182,today,seeds[3]);
 		RandomBucket true70 = new RandomBucket(2, seeds[4]);
 		NormalDistRangeGenerator productNrGen = new NormalDistRangeGenerator(2,1,productCount,4,seeds[5]);
-		true70.add(70, new Boolean(true));
-		true70.add(30, new Boolean(false));
+		true70.add(70, Boolean.valueOf(true));
+		true70.add(30, Boolean.valueOf(false));
 
 		
 		NormalDistGenerator reviewCountPRSGen = new NormalDistGenerator(3,1, avgReviewsPerRatingSite ,seeds[6]);

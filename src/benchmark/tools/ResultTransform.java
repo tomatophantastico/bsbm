@@ -312,7 +312,7 @@ class IntReference {
 	
 	@Override
     public String toString() {
-		return (new Integer(value)).toString();
+		return (Integer.valueOf(value)).toString();
 	}
 }
 
@@ -354,18 +354,18 @@ class ResultHandler extends DefaultHandler {
             int start,
             int length) {
 		if(inQueryAttr) {
-			String t = "";
+			StringBuilder t = new StringBuilder();
 		    for ( int i = start; i < (start + length); i++ )
-		      t += ch[i];
+		      t.append(ch[i]);
 
-		    resultArray[index++] = t;
+		    resultArray[index++] = t.toString();
 		}
 		else if(inQMAttr) {
-			String t = "";
+			StringBuilder t = new StringBuilder();
 		    for ( int i = start; i < (start + length); i++ )
-		      t += ch[i];
+		      t.append(ch[i]);
 
-		    qmValue = t;
+		    qmValue = t.toString();
 		}
 	}
 	
@@ -384,7 +384,9 @@ class ResultHandler extends DefaultHandler {
 	}
 }
 
-class StringLengthComparator implements Comparator<String> {
+class StringLengthComparator implements Comparator<String>, Serializable{
+	private static final long serialVersionUID = -5232659752583741930L;
+
 	public int compare(String s1, String s2) {
 		if(s1.length() == s2.length())
 			return 0;

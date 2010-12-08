@@ -228,7 +228,7 @@ public class VirtSerializer implements Serializer {
 				StringBuffer valuesPTP = getBuffer(tables.productTypeProductInsertCounter++, "ProductTypeProduct");
 				
 				valuesPTP.append("(" + product.getNr() + ",");
-				valuesPTP.append(new Integer(pt.getNr()).toString());
+				valuesPTP.append(Integer.valueOf(pt.getNr()).toString());
 				valuesPTP.append(")");
 				
 				if(tables.productTypeProductInsertCounter>=insertNumber) {
@@ -244,7 +244,7 @@ public class VirtSerializer implements Serializer {
 			StringBuffer valuesPTP = getBuffer(tables.productTypeProductInsertCounter++, "ProductTypeProduct");
 			
 			valuesPTP.append("(" + product.getNr() + ",");
-			valuesPTP.append(new Integer(product.getProductType().getNr()).toString());
+			valuesPTP.append(Integer.valueOf(product.getProductType().getNr()).toString());
 			valuesPTP.append(")");
 			
 			if(tables.productTypeProductInsertCounter>=insertNumber) {
@@ -298,7 +298,7 @@ public class VirtSerializer implements Serializer {
 		}
 		
 		//dc:publisher
-		values.append(new Integer(product.getProducer()).toString());
+		values.append(Integer.valueOf(product.getProducer()).toString());
 		values.append(",");
 			
 		//dc:date
@@ -617,7 +617,7 @@ public class VirtSerializer implements Serializer {
 		return nrTriples;
 	}
 
-	private class SQLTables {
+	private static class SQLTables {
 		FileWriter offerDump;
 		FileWriter vendorDump;
 		FileWriter productFeatureDump;

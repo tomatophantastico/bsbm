@@ -230,7 +230,7 @@ public class MonetDBSerializer implements Serializer {
 				StringBuffer valuesPTP = getBuffer(tables.productTypeProductInsertCounter++, "producttypeproduct");
 				
 				valuesPTP.append("(" + product.getNr() + ",");
-				valuesPTP.append(new Integer(pt.getNr()).toString());
+				valuesPTP.append(Integer.valueOf(pt.getNr()).toString());
 				valuesPTP.append(")");
 				
 				if(tables.productTypeProductInsertCounter>=insertNumber) {
@@ -246,7 +246,7 @@ public class MonetDBSerializer implements Serializer {
 			StringBuffer valuesPTP = getBuffer(tables.productTypeProductInsertCounter++, "producttypeproduct");
 			
 			valuesPTP.append("(" + product.getNr() + ",");
-			valuesPTP.append(new Integer(product.getProductType().getNr()).toString());
+			valuesPTP.append(Integer.valueOf(product.getProductType().getNr()).toString());
 			valuesPTP.append(")");
 			
 			if(tables.productTypeProductInsertCounter>=insertNumber) {
@@ -300,7 +300,7 @@ public class MonetDBSerializer implements Serializer {
 		}
 		
 		//dc:publisher
-		values.append(new Integer(product.getProducer()).toString());
+		values.append(Integer.valueOf(product.getProducer()).toString());
 		values.append(",");
 			
 		//dc:date
