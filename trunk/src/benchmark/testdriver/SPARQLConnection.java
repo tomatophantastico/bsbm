@@ -190,7 +190,7 @@ private int countBytes(InputStream is) {
 		return count;
 	}
 	
-	private class ResultHandler extends DefaultHandler {
+	private static class ResultHandler extends DefaultHandler {
 		private int count;
 		
 		ResultHandler() {
@@ -297,7 +297,7 @@ private int countBytes(InputStream is) {
 		it = resultChildren.iterator();
 		while(it.hasNext()) {
 			Element resultElement = it.next();
-			String result = "";
+			StringBuilder result = new StringBuilder();
 			
 			//get the row values and paste it together to one String
 			for(int i=0;i<rows.length;i++) {
@@ -307,14 +307,14 @@ private int countBytes(InputStream is) {
 				for(int j=0;j<bindings.size();j++) {
 					Element binding = bindings.get(j);
 					if(binding.getAttributeValue("name").equals(rowName))
-						if(result.equals(""))
-							result += rowName + ": " + ((Element)binding.getChildren().get(0)).getTextNormalize();
+						if(result.length()==0)
+							result.append(rowName + ": " + ((Element)binding.getChildren().get(0)).getTextNormalize());
 						else
-							result += "\n" + rowName + ": " + ((Element)binding.getChildren().get(0)).getTextNormalize();
+							result.append("\n" + rowName + ": " + ((Element)binding.getChildren().get(0)).getTextNormalize());
 				}
 			}
 			
-			queryResult.addResult(result);
+			queryResult.addResult(result.toString());
 		}
 		return queryResult;
 	}

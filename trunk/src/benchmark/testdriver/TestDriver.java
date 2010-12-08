@@ -726,7 +726,7 @@ public class TestDriver {
 		System.out.print(output);
 	}
 	
-	class TestDriverShutdown extends Thread {
+	static class TestDriverShutdown extends Thread {
 		TestDriver testdriver;
 		
 		TestDriverShutdown(TestDriver t) {

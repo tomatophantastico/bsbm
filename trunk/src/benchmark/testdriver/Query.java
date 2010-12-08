@@ -154,7 +154,7 @@ public class Query {
 		
 		//fill parameterFills
 		Vector<Integer> paramFills = new Vector<Integer>();
-		index = 0;//Array index
+
 		int index1 = 0;
 		int index2 = -1;
 		while(queryString.indexOf(parameterChar,index2+1)!=-1) {
