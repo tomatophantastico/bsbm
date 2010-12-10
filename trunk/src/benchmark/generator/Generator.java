@@ -37,6 +37,16 @@ public class Generator {
 	private static String serializerType = "nt"; 
 	private static int nrOfOutputFiles = 1;
 	
+	//Update dataset parameters. Output type is always N-Triple.
+	private static boolean generateUpdateDataset = false;
+	private static String updateDatasetFileName = "dataset_update";
+	private static String updateDatasetTransactionSeparator = "\n#__SEP__\n";
+	private static int nrOfTransactionsInUpdateDataset = 500;
+	private static int nrOfProductsPerTransaction = 1;
+	private static int nrOfMinProductNrForUpdate = Integer.MAX_VALUE;
+	private static Serializer updateDatasetSerializer = null;
+	private static List<List<BSBMResource>> updateResourceData = null;
+	
 	//Ratios of different Resources
 	static final int productsVendorsRatio = 100;
 	
@@ -78,6 +88,17 @@ public class Generator {
 	//Set parameters
 	public static void init()
 	{
+		if(generateUpdateDataset) {
+			if(nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset > productCount) {
+				System.err.println("Product count not high enough to generate an update dataset of " + (nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset) + " products");
+				System.exit(-1);
+			}
+			nrOfMinProductNrForUpdate = productCount - nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset + 1;
+			updateDatasetSerializer = new NTriples(updateDatasetFileName, forwardChaining);
+			updateResourceData = new ArrayList<List<BSBMResource>>();
+			for(int i = 0; i<nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset; i++)
+				updateResourceData.add(new ArrayList<BSBMResource>());
+		}
 		offerCount = productCount * avgOffersPerProduct;
 
 		reviewCount = avgReviewsPerProduct * productCount;
@@ -670,7 +691,11 @@ public class Generator {
 				p.setPublishDate(publishDateGen.randomDateInMillis());
 			}
 			
-			bundle.add(p);	
+			// Decide if the product goes to the update dataset
+			if(generateUpdateDataset && nr>=nrOfMinProductNrForUpdate)
+				updateResourceData.get(nr-nrOfMinProductNrForUpdate).add(p);
+			else
+				bundle.add(p);	
 		}
 		dictionary1.deactivateLogging();
 	}
@@ -827,8 +852,10 @@ public class Generator {
 				offer.setPublishDate(publishDate);
 				offer.setPublisher(vendor);
 			}
-			
-			bundle.add(offer);
+			if(generateUpdateDataset && product>=nrOfMinProductNrForUpdate)
+				updateResourceData.get(product-nrOfMinProductNrForUpdate).add(offer);
+			else
+				bundle.add(offer);
 		}
 	}
 
@@ -1000,9 +1027,27 @@ public class Generator {
 			//needed for qualified name
 			review.setPublisher(person.getPublisher());
 			
-			bundle.add(review);
+			if(generateUpdateDataset && product>=nrOfMinProductNrForUpdate)
+				updateResourceData.get(product-nrOfMinProductNrForUpdate).add(review);
+			else
+				bundle.add(review);
+
 			reviewNr++;
 		}
+	}
+	
+	protected static void createUpdateDataset() {
+		int productsInTransaction = 0;
+		ObjectBundle bundle = new ObjectBundle(updateDatasetSerializer);
+		for(List<BSBMResource> productData: updateResourceData) {
+			for(BSBMResource res: productData)
+				bundle.add(res);
+			bundle.commitToSerializer();
+			productsInTransaction = (productsInTransaction + 1) % nrOfProductsPerTransaction; 
+			if(productsInTransaction==0)
+				bundle.writeStringToSerializer(updateDatasetTransactionSeparator);
+		}
+		updateDatasetSerializer.serialize();
 	}
 	
 	/*
@@ -1029,6 +1074,18 @@ public class Generator {
 				}
 				else if(args[i].equals("-nof")) {
 					nrOfOutputFiles = Integer.parseInt(args[i++ + 1]);
+				}
+				else if(args[i].equals("-ud")) {
+					generateUpdateDataset = true;
+				}
+				else if(args[i].equals("-tc")) {
+					nrOfTransactionsInUpdateDataset = Integer.parseInt(args[i++ + 1]);
+				}
+				else if(args[i].equals("-ppt")) {
+					nrOfProductsPerTransaction = Integer.parseInt(args[i++ + 1]);
+				}
+				else if(args[i].equals("-sep")) {
+					updateDatasetTransactionSeparator = String.valueOf(args[i++ + 1]);
 				}
 				else {
 					printUsageInfos();
@@ -1067,7 +1124,17 @@ public class Generator {
 						"\t\tdefault: dataset\n" +
 						"\t-nof <number of output files>\n" +
 						"\t\tThe number of output files. Only for -s nt or ttl\n" +
-						"\t\tdefault: 1\n";
+						"\t\tdefault: 1\n" +
+						"\t-ud Switch on generation of update dataset\n" +
+						"\t-tc <number of update transactions>\n" +
+						"\t\tShould be used in combination with -ud.\n" +
+						"\t\tdefault: 500\n" +
+						"\t-ppt <number of products per update transactions>\n" +
+						"\t\tShould be used in combination with -ud.\n" +
+						"\t\tdefault: 1\n" +
+						"\t-sep <Seperator string between transaction data>\n" +
+						"\t\tShould be used in combination with -ud.\n" +
+						"\t\tdefault: '\\n#__SEP__\\n'\n";
 		System.out.print(output);
 	}
 	/**
@@ -1096,6 +1163,12 @@ public class Generator {
 		serializer.serialize();
 		writeTestDriverData();
 		
+		if(generateUpdateDataset)
+			createUpdateDataset();
+		
 		System.out.println(serializer.triplesGenerated() + " triples generated.");
+		
+		if(generateUpdateDataset)
+			System.out.println(updateDatasetSerializer.triplesGenerated() + " triples generated for update dataset.");
 	}
 }

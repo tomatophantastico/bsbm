@@ -701,6 +701,15 @@ public class NTriples implements Serializer {
 			System.exit(-1);
 		}
 	}
+	
+	public void writeString(String s) {
+		try {
+			fileWriter[currentWriter].append(s);
+		} catch(IOException e) {
+			System.err.println("Could not write output.\n" + e.getMessage());
+			System.exit(-1);
+		}
+	}
 
 	public Long triplesGenerated() {
 		return nrTriples;
