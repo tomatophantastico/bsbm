@@ -8,11 +8,14 @@ public class Query {
 	private Object[] parameters;
 	private Integer[] parameterFills;
 	private Byte[] parameterTypes;
+	// Some parameters define additional information that will be stored here
+	private String[] additionalParameterInfo;
 	private Vector<String> queryStrings;
 	private Byte queryType;
 	private QueryMix queryMix;
 	private String parameterChar;
 	private String[] rowNames;//which rows to look at for validation
+	private static Map<String, Byte> parameterMapping;
 	
 	//Parameter constants
 	public static final byte PRODUCT_PROPERTY_NUMERIC = 1;
@@ -24,11 +27,30 @@ public class Query {
 	public static final byte REVIEW_URI = 7;
 	public static final byte COUNTRY_URI = 8;
 	public static final byte OFFER_URI = 9;
+	public static final byte CONSECUTIVE_MONTH = 10;
+	public static final byte UPDATE_TRANSACTION_DATA = 11;
+	
+	// Initialize Parameter mappings
+	static {
+		parameterMapping = new HashMap<String, Byte>();
+		parameterMapping.put("ProductPropertyNumericValue", PRODUCT_PROPERTY_NUMERIC);
+		parameterMapping.put("ProductFeatureURI", PRODUCT_FEATURE_URI);
+		parameterMapping.put("ProductTypeURI", PRODUCT_TYPE_URI);
+		parameterMapping.put("CurrentDate", CURRENT_DATE);
+		parameterMapping.put("Dictionary1", WORD_FROM_DICTIONARY1);
+		parameterMapping.put("ProductURI", PRODUCT_URI);
+		parameterMapping.put("ReviewURI", REVIEW_URI);
+		parameterMapping.put("CountryURI", COUNTRY_URI);
+		parameterMapping.put("OfferURI", OFFER_URI);
+		parameterMapping.put("ConsecutiveMonth", CONSECUTIVE_MONTH);
+		parameterMapping.put("UpdateTransactionData", UPDATE_TRANSACTION_DATA);
+	}
 	
 	//query type constants
 	public static final byte SELECT_TYPE = 1;
 	public static final byte DESCRIBE_TYPE = 2;
 	public static final byte CONSTRUCT_TYPE = 3;
+	public static final byte UPDATE_TYPE = 4;
 	
 	public Query(String queryString, String parameterDescription, String c)
 	{
@@ -42,8 +64,10 @@ public class Query {
 		String queryString = "";
 		String parameterDescriptionString = "";
 		
+		BufferedReader descriptionReader = null;
+		BufferedReader queryReader = null;
 		try{
-			BufferedReader queryReader = new BufferedReader(new InputStreamReader(new FileInputStream(queryFile)));
+			queryReader = new BufferedReader(new InputStreamReader(new FileInputStream(queryFile)));
 			StringBuffer sb = new StringBuffer();
 			
 			while(true) {
@@ -58,7 +82,7 @@ public class Query {
 			queryString = sb.toString();
 			
 			//Now the parameter description
-			BufferedReader descriptionReader = new BufferedReader(new InputStreamReader(new FileInputStream(parameterDescriptionFile)));
+			descriptionReader = new BufferedReader(new InputStreamReader(new FileInputStream(parameterDescriptionFile)));
 			sb = new StringBuffer();
 			
 			while(true) {
@@ -75,6 +99,15 @@ public class Query {
 		} catch(IOException e){
 			System.err.println(e.getMessage());
 			System.exit(-1);
+		} finally {
+			try {
+				if(descriptionReader!=null)
+					descriptionReader.close();
+				if(queryReader!=null)
+					queryReader.close();
+			} catch(IOException e) {
+				e.printStackTrace();
+			}
 		}
 		
 		init(queryString, parameterDescriptionString);
@@ -95,6 +128,7 @@ public class Query {
 		processParameters(queryString, parameterDescription);
 		
 		parameters = new Object[parameterTypes.length];
+		additionalParameterInfo = new String[parameterTypes.length];
 	}
 	
 	/*
@@ -177,24 +211,9 @@ public class Query {
 	 * get the byte type representation of this parameter string
 	 */
 	private byte getParamType(String stringType) {
-		if(stringType.equals("ProductPropertyNumericValue"))
-			return PRODUCT_PROPERTY_NUMERIC;
-		else if(stringType.equals("ProductFeatureURI"))
-			return PRODUCT_FEATURE_URI;
-		else if(stringType.equals("ProductTypeURI"))
-			return PRODUCT_TYPE_URI;
-		else if(stringType.equals("CurrentDate"))
-			return CURRENT_DATE;
-		else if(stringType.equals("Dictionary1"))
-			return WORD_FROM_DICTIONARY1;
-		else if(stringType.equals("ProductURI"))
-			return PRODUCT_URI;
-		else if(stringType.equals("ReviewURI"))
-			return REVIEW_URI;
-		else if(stringType.equals("CountryURI"))
-			return COUNTRY_URI;
-		else if(stringType.equals("OfferURI"))
-			return OFFER_URI;
+		Byte param = parameterMapping.get(stringType);
+		if(param!=null)
+			return param;
 		else
 			return 0;
 	}
@@ -209,6 +228,8 @@ public class Query {
 			return DESCRIBE_TYPE;
 		else if(stringType.toLowerCase().equals("construct"))
 			return CONSTRUCT_TYPE;
+		else if(stringType.toLowerCase().equals("update"))
+			return UPDATE_TYPE;
 		else
 			return 0;
 	}
@@ -256,7 +277,7 @@ public class Query {
 	 * returns a String of the Query with query parameters filled in.
 	 */
 	public String getQueryString() {
-		StringBuffer s = new StringBuffer();
+		StringBuilder s = new StringBuilder();
 		
 		s.append(queryStrings.get(0));
 		for(int i=1;i<queryStrings.size();i++) {
@@ -269,6 +290,10 @@ public class Query {
 	
 	public Byte[] getParameterTypes() {
 		return parameterTypes;
+	}
+	
+	public String getAdditionalParameterInfo (int indexOfParameter) {
+		return additionalParameterInfo[indexOfParameter];
 	}
 	
 	public int getNr() {

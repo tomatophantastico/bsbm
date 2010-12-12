@@ -43,16 +43,18 @@ public class TestDriver {
 	protected int warmups = TestDriverDefaultValues.warmups;//how many Query mixes are run for warm up
 	protected AbstractParameterPool parameterPool;//Where to get the query parameters from
 	protected ServerConnection server;//only important for single threaded runs
-	protected String queryMixFN = "querymix.txt";//"qm.txt";
+	protected String queryMixFN = "queries/explore/querymix.txt";//"qm.txt";
 	protected String ignoreQueryFN = "ignoreQueries.txt";//contains Queries to ignore
 	protected File queryDir = TestDriverDefaultValues.queryDir;//where to take the queries from
 	protected int nrRuns = TestDriverDefaultValues.nrRuns;
 	protected long seed = TestDriverDefaultValues.seed;//For the random number generators
 	protected String sparqlEndpoint = null;
+	protected String sparqlUpdateEndpoint = null;
 	protected String defaultGraph = TestDriverDefaultValues.defaultGraph;
 	protected String resourceDir = TestDriverDefaultValues.resourceDir;//Where to take the Test Driver data from
 	protected String xmlResultFile = TestDriverDefaultValues.xmlResultFile;
 	protected static Logger logger = Logger.getLogger( TestDriver.class );
+	protected String updateFile = null;
 	protected boolean[] ignoreQueries;//Queries to ignore
 	protected boolean doSQL = false;
 	protected boolean multithreading=false;
@@ -77,15 +79,19 @@ public class TestDriver {
 		System.out.flush();
 		if(doSQL)
 			parameterPool = new SQLParameterPool(new File(resourceDir),seed);
-		else
-			parameterPool = new LocalSPARQLParameterPool(new File(resourceDir),seed);
+		else {
+			if(updateFile==null)
+				parameterPool = new LocalSPARQLParameterPool(new File(resourceDir),seed);
+			else
+				parameterPool = new LocalSPARQLParameterPool(new File(resourceDir), seed, new File(updateFile));
+		}
 		System.out.println("done");
 	
 		if(sparqlEndpoint!=null && !multithreading){
 			if(doSQL)
 				server = new SQLConnection(sparqlEndpoint, timeout, driverClassName);
 			else
-				server = new SPARQLConnection(sparqlEndpoint, defaultGraph, timeout);
+				server = new SPARQLConnection(sparqlEndpoint, sparqlUpdateEndpoint, defaultGraph, timeout);
 		} else if(multithreading) {
 			//do nothing
 		}
@@ -183,7 +189,7 @@ public class TestDriver {
 			while(st.hasMoreTokens()) {
 				rowNames.add(st.nextToken());
 			}
-
+			rowReader.close();
 		} catch(IOException e) {
 			System.err.println("Error processing query qualification-info file: " + file.getAbsolutePath());
 			System.exit(-1);
@@ -212,7 +218,7 @@ public class TestDriver {
 			while(st.hasMoreTokens()) {
 				qm.add(Integer.parseInt(st.nextToken()));
 			}
-
+			qmReader.close();
 		} catch(IOException e) {
 			System.err.println("Error processing query mix file: " + queryMixFilename);
 			System.exit(-1);
@@ -246,7 +252,7 @@ public class TestDriver {
 				if(queryNr>0 && queryNr<=maxQueryNumber)
 					ignoreQueries[queryNr-1] = true;
 			}
-
+			qmReader.close();
 		} catch(IOException e) {
 			System.err.println("Error processing query ignore file: " + ignoreListFilename);
 			System.exit(-1);
@@ -262,13 +268,20 @@ public class TestDriver {
 		BufferedWriter measurementFile = null;
 		try{
 			measurementFile = new BufferedWriter(new FileWriter("steadystate.tsv"));
-		} catch(IOException e) { System.err.println("Could not create file steadystae.tsv!"); System.exit(-1);}
+		} catch(IOException e) { System.err.println("Could not create file steadystate.tsv!"); System.exit(-1);}
 		
 		for(int nrRun=-warmups;nrRun<nrRuns;nrRun++) {
 			long startTime = System.currentTimeMillis();
 			queryMix.setRun(nrRun);
 			while(queryMix.hasNext()) {
 				Query next = queryMix.getNext();
+				
+				// Don't run update queries on warm-up
+				if(nrRun<0 && next.getQueryType()==Query.UPDATE_TYPE) {
+					queryMix.setCurrent(0, -1.0);
+					continue;
+				}
+				
 				Object[] queryParameters = parameterPool.getParametersForQuery(next);
 				next.setParameters(queryParameters);
 				if(ignoreQueries[next.getNr()-1])
@@ -300,11 +313,13 @@ public class TestDriver {
 			queryMix.finishRun();
 		}
 		logger.log(Level.ALL, printResults(true));
+
 		try {
 			FileWriter resultWriter = new FileWriter(xmlResultFile);
 			resultWriter.append(printXMLResults(true));
 			resultWriter.flush();
 			resultWriter.close();
+			measurementFile.close();
 		} catch(IOException e) {
 			e.printStackTrace();
 		}
@@ -315,6 +330,7 @@ public class TestDriver {
 		System.out.println("Creating qualification file: " + file.getAbsolutePath() + "\n");
 		try{
 			file.createNewFile();
+				
 			ObjectOutputStream objectOutput = new ObjectOutputStream(new FileOutputStream(file, false));
 			objectOutput.writeInt(queryMix.getQueries().length);
 			objectOutput.writeLong(seed);
@@ -379,6 +395,11 @@ public class TestDriver {
 				queryMix.setRun(nrRun);
 				while(queryMix.hasNext()) {
 					Query next = queryMix.getNext();
+					// Don't execute Update queries in ramp-up
+					if(next.getQueryType()==Query.UPDATE_TYPE) {
+						queryMix.setCurrent(0, -1.0);
+						continue;
+					}
 					Object[] queryParameters = parameterPool.getParametersForQuery(next);
 					next.setParameters(queryParameters);
 					if(ignoreQueries[next.getNr()-1])
@@ -430,6 +451,11 @@ public class TestDriver {
 				all5 += pVal;
 			}
 			System.out.println("Total execution time for period " + periodNr + "/last " + (periodNr<nrOfPeriods?periodNr:nrOfPeriods) + " periods: " + String.format(Locale.US, "%.3f",runtime*1000) + "ms/"+ String.format(Locale.US, "%.3f",all5*1000) +"ms\n");
+		}
+		try {
+			measurementFile.close();
+		} catch(IOException e) {
+			e.printStackTrace();
 		}
 		System.out.println("Steady state reached after " + periodNr + " measurement periods/" + String.format(Locale.US, "%.3f",totalRuntime) + "s");
 		server.close();
@@ -509,7 +535,12 @@ public class TestDriver {
 					if(multithreading)
 						throw new Exception("Incompatible options: -mt and -rampup");
 					rampup = true;
-					
+				}
+				else if(args[i].equals("-u")) {
+					sparqlUpdateEndpoint = args[i++ + 1];
+				}
+				else if(args[i].equals("-udataset")) {
+					updateFile = args[i++ + 1];
 				}
 				else if(!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
@@ -524,7 +555,8 @@ public class TestDriver {
 				i++;
 							
 			} catch(Exception e) {
-				System.err.println("Invalid arguments\n");
+				System.err.println("Invalid arguments:\n");
+				e.printStackTrace();
 				printUsageInfos();
 				System.exit(-1);
 			}
@@ -714,6 +746,10 @@ public class TestDriver {
 						"\t\tdefault: " + TestDriverDefaultValues.timeoutInMs + "ms\n" + 
 						"\t-dbdriver <DB-Driver Class Name>\n" +
 						"\t\tdefault: " + TestDriverDefaultValues.driverClassName+ "\n" +
+						"\t-u <Sparql Update Service Endpoint URL>\n" +
+						"\t\tUse this if you have SPARQL Update queries in your query mix.\n" +
+						"\t-udataset <update dataset file name>\n" +
+						"\t\tSpecified an update file generated by the BSBM dataset generator.\n" +
 						"\t-q\n"  +
 						"\t\tTurn on qualification mode instead of doing a test run.\n" +
 						"\t\tdefault: " + TestDriverDefaultValues.qualification + "\n" +
@@ -736,8 +772,9 @@ public class TestDriver {
 		@Override
         public void run() {
 			try {
-				testdriver.server.close();
-			} catch(Exception e) {}
+				if(testdriver.server!=null)
+					testdriver.server.close();
+			} catch(Exception e) {e.printStackTrace();}
 		}
 	}
 	

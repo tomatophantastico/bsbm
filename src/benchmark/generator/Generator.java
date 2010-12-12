@@ -1131,10 +1131,7 @@ public class Generator {
 						"\t\tdefault: 500\n" +
 						"\t-ppt <number of products per update transactions>\n" +
 						"\t\tShould be used in combination with -ud.\n" +
-						"\t\tdefault: 1\n" +
-						"\t-sep <Seperator string between transaction data>\n" +
-						"\t\tShould be used in combination with -ud.\n" +
-						"\t\tdefault: '\\n#__SEP__\\n'\n";
+						"\t\tdefault: 1\n";
 		System.out.print(output);
 	}
 	/**
