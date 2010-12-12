@@ -10,9 +10,21 @@ import benchmark.vocabulary.*;
 import benchmark.vocabulary.XSD;
 
 public class LocalSPARQLParameterPool extends AbstractParameterPool {
+	private BufferedReader updateFileReader = null;
 	
 	public LocalSPARQLParameterPool(File resourceDirectory, Long seed) {
 		init(resourceDirectory, seed);
+	}
+	
+	public LocalSPARQLParameterPool(File resourceDirectory, Long seed, File updateDatasetFile) {
+		init(resourceDirectory, seed);
+		try {
+			updateFileReader = new BufferedReader(new FileReader(updateDatasetFile));
+		} catch (FileNotFoundException e) {
+			System.out.println("Could not open update dataset file: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
 	}
 	
 	@Override
@@ -43,6 +55,8 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 				parameters[i] = getRandomWord();
 			else if(parameterTypes[i]==Query.OFFER_URI)
 				parameters[i] = getRandomOfferURI();
+			else if(parameterTypes[i]==Query.UPDATE_TRANSACTION_DATA)
+				parameters[i] = getUpdateTransactionData();
 			else
 				parameters[i] = null;
 		}
@@ -175,6 +189,27 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 	 */
 	private Integer getProductPropertyNumeric() {
 		return valueGen.randomInt(1, 500);
+	}
+	
+	/*
+	 * Return the triples to inserted into the store
+	 */
+	private String getUpdateTransactionData() {
+		StringBuilder s = new StringBuilder();
+		String line = null;
+		try {
+			while((line=updateFileReader.readLine()) != null) {
+				if(line.equals("#__SEP__"))
+					break;
+				s.append(line);
+				s.append("\n");
+			}
+		} catch (IOException e) {
+			System.err.println("Error reading update data from file: " + e.getMessage());
+			e.printStackTrace();
+			System.exit(-1);
+		}
+		return s.toString();
 	}
 
 	@Override
