@@ -64,7 +64,8 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 					randomDate = getRandomPublishDate();
 				int monthNr = (Integer)query.getAdditionalParameterInfo(i);
 				parameters[i] = getConsecutiveMonth(randomDate, monthNr);
-			}
+			} else if(parameterTypes[i]==Query.PRODUCER_URI)
+				parameters[i] = getRandomProducerURI();
 			else
 				parameters[i] = null;
 		}
@@ -167,6 +168,15 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		Integer ratingSiteNr = getRatingsiteOfReviewer(reviewNr);
 		
 		return Review.getURIref(reviewNr, ratingSiteNr);
+	}
+	
+	/*
+	 * Get a random producer URI
+	 */
+	private String getRandomProducerURI() {
+		Integer producerNr = valueGen.randomInt(1, producerOfProduct.length-1);
+		
+		return Producer.getPrefixed(producerNr);
 	}
 	
 	/*
