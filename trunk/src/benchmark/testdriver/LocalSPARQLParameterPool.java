@@ -11,6 +11,7 @@ import benchmark.vocabulary.XSD;
 
 public class LocalSPARQLParameterPool extends AbstractParameterPool {
 	private BufferedReader updateFileReader = null;
+	private GregorianCalendar publishDateMin = new GregorianCalendar(2007,5,20);
 	
 	public LocalSPARQLParameterPool(File resourceDirectory, Long seed) {
 		init(resourceDirectory, seed);
@@ -33,6 +34,7 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		Object[] parameters = new Object[parameterTypes.length];
 		ArrayList<Integer> productFeatureIndices = new ArrayList<Integer>();
 		ProductType pt = null;
+		GregorianCalendar randomDate = null;
 		
 		for(int i=0;i<parameterTypes.length;i++) {
 			if(parameterTypes[i]==Query.PRODUCT_TYPE_URI) {
@@ -57,6 +59,12 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 				parameters[i] = getRandomOfferURI();
 			else if(parameterTypes[i]==Query.UPDATE_TRANSACTION_DATA)
 				parameters[i] = getUpdateTransactionData();
+			else if(parameterTypes[i]==Query.CONSECUTIVE_MONTH) {
+				if(randomDate==null)
+					randomDate = getRandomPublishDate();
+				int monthNr = (Integer)query.getAdditionalParameterInfo(i);
+				parameters[i] = getConsecutiveMonth(randomDate, monthNr);
+			}
 			else
 				parameters[i] = null;
 		}
@@ -72,6 +80,15 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		}
 		
 		return parameters;
+	}
+	
+	/*
+	 * Get date string for ConsecutiveMonth
+	 */
+	private String getConsecutiveMonth(GregorianCalendar date, int monthNr) {
+		GregorianCalendar gClone = (GregorianCalendar)date.clone();
+		gClone.add(GregorianCalendar.DAY_OF_MONTH, 28*monthNr);
+		return DateGenerator.formatDate(gClone);
 	}
 	
 	/*
@@ -110,6 +127,16 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		Integer index = valueGen.randomInt(0, productTypeLeaves.length-1);
 		
 		return productTypeLeaves[index];
+	}
+	
+	/*
+	 * Get a random date from (today-365) to (today-56)
+	 */
+	private GregorianCalendar getRandomPublishDate() {
+		Integer dayOffset = valueGen.randomInt(0, 309);
+		GregorianCalendar gClone = (GregorianCalendar)publishDateMin.clone();
+		gClone.add(GregorianCalendar.DAY_OF_MONTH, dayOffset);
+		return gClone;
 	}
 	
 	/*
