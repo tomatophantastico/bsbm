@@ -29,6 +29,7 @@ public class Query {
 	public static final byte OFFER_URI = 9;
 	public static final byte CONSECUTIVE_MONTH = 10;
 	public static final byte UPDATE_TRANSACTION_DATA = 11;
+	public static final byte PRODUCER_URI = 12;
 
 	// Initialize Parameter mappings
 	static {
@@ -43,8 +44,9 @@ public class Query {
 		parameterMapping.put("ReviewURI", REVIEW_URI);
 		parameterMapping.put("CountryURI", COUNTRY_URI);
 		parameterMapping.put("OfferURI", OFFER_URI);
-		parameterMapping.put("ConsecutiveWeekDate", CONSECUTIVE_MONTH);
+		parameterMapping.put("ConsecutiveMonth", CONSECUTIVE_MONTH);
 		parameterMapping.put("UpdateTransactionData", UPDATE_TRANSACTION_DATA);
+		parameterMapping.put("ProducerURI", PRODUCER_URI);
 	}
 
 	// query type constants
