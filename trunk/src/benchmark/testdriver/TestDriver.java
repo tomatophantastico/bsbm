@@ -21,11 +21,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
 
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -43,9 +46,7 @@ public class TestDriver {
 	protected int warmups = TestDriverDefaultValues.warmups;//how many Query mixes are run for warm up
 	protected AbstractParameterPool parameterPool;//Where to get the query parameters from
 	protected ServerConnection server;//only important for single threaded runs
-	protected String queryMixFN = "queries/explore/querymix.txt";//"qm.txt";
-	protected String ignoreQueryFN = "ignoreQueries.txt";//contains Queries to ignore
-	protected File queryDir = TestDriverDefaultValues.queryDir;//where to take the queries from
+	protected File usecaseFile = TestDriverDefaultValues.usecaseFile;//where to take the queries from
 	protected int nrRuns = TestDriverDefaultValues.nrRuns;
 	protected long seed = TestDriverDefaultValues.seed;//For the random number generators
 	protected String sparqlEndpoint = null;
@@ -104,70 +105,231 @@ public class TestDriver {
 		Runtime.getRuntime().addShutdownHook(tds);
 	}
 	
+	/*
+	 * Read which query mixes (directories) are used in the use case
+	 */
+	private List<String> getUseCaseQuerymixes() {
+		List<String> files = new ArrayList<String>();
+		
+		try {
+			BufferedReader reader = new BufferedReader(new FileReader(usecaseFile));
+			String line = null;
+			while((line=reader.readLine())!=null) {
+				String[] querymixInfo = line.split("=");
+				if(querymixInfo.length!=2) {
+					System.err.println("Invalid entry in use case file " + usecaseFile + ":\n");
+					System.err.println(line);
+					System.exit(-1);
+				}
+				if(querymixInfo[0].toLowerCase().equals("querymix"))
+					files.add(querymixInfo[1]);
+			}
+			
+		} catch(IOException e) {
+			System.err.println(e.getMessage());
+			System.exit(-1);
+		}
+		return files;
+	}
+	
+	/*
+	 * Get the querymix ordering information
+	 */
+	private List<Integer[]> getQuerymixRuns(List<String> querymixDirs) {
+		List<Integer[]> runs = new ArrayList<Integer[]>();
+		for(String querymixDir: querymixDirs) {
+			runs.add(getQueryMixInfo(new File(querymixDir, "querymix.txt")));
+		}
+		return runs;
+	}
+	
+	private List<Integer> getMaxQueryNrs(List<Integer[]> querymixRuns) {
+		List<Integer> maxNrs = new ArrayList<Integer>();
+		for(Integer[] run: querymixRuns) {
+			Integer maxQueryNr = 0;
+			for(int i=0;i<run.length;i++) {
+				if(run[i] != null && run[i] > maxQueryNr)
+					maxQueryNr = run[i];
+			}
+			maxNrs.add(maxQueryNr);
+		}
+		return maxNrs;
+	}
+	
+	private List<boolean[]> getIgnoredQueries(List<String> querymixDirs, List<Integer> maxQueryNrs) {
+		List<boolean[]> ignoredQueries = new ArrayList<boolean[]>();
+		Iterator<String> queryMixDirIterator = querymixDirs.iterator();
+		Iterator<Integer> maxQueryNrIterator = maxQueryNrs.iterator();
+		while(queryMixDirIterator.hasNext()) {
+			File ignoreFile = new File(queryMixDirIterator.next(), "ignoreQueries.txt");
+			int maxQueryNr = maxQueryNrIterator.next();
+			
+			boolean[] ignoreQueries = new boolean[maxQueryNr];
+			if(!ignoreFile.exists()) {
+				for(int i=0;i<ignoreQueries.length;i++) {
+					ignoreQueries[i] = false;
+				}
+			}
+			else
+				ignoreQueries = getIgnoreQueryInfo(ignoreFile, maxQueryNr);
+			
+			ignoredQueries.add(ignoreQueries);
+		}
+		return ignoredQueries;
+	}
+	
+	private List<Query[]> getQueries(List<String> querymixDirs, List<Integer[]> queryRuns, List<Integer> maxQueryNrs) {
+		List<Query[]> allQueries = new ArrayList<Query[]>();
+		
+		Iterator<String> queryMixDirIterator = querymixDirs.iterator();
+		Iterator<Integer[]> queryRunIterator = queryRuns.iterator();
+		Iterator<Integer> maxQueryNrIterator = maxQueryNrs.iterator();
+		
+		while(queryMixDirIterator.hasNext()) {
+			Integer[] queryRun = queryRunIterator.next();
+			String queryDir = queryMixDirIterator.next();
+			Query[] queries = new Query[maxQueryNrIterator.next()];
+			
+			for(int i=0;i<queryRun.length;i++) {
+				if(queryRun[i]!=null) {
+					Integer qnr = queryRun[i];
+					if(queries[qnr-1]==null) {
+						File queryFile = new File(queryDir, "query" + qnr + ".txt");
+						File queryDescFile = new File(queryDir, "query" + qnr + "desc.txt");
+						if(doSQL)
+							queries[qnr-1] = new Query(queryFile, queryDescFile, "@");
+						else
+							queries[qnr-1] = new Query(queryFile, queryDescFile, "%");
+						
+						//Read qualification information
+						if(qualification) {
+							File queryValidFile = new File(queryDir, "query" + qnr + "valid.txt");
+							String[] rowNames = getRowNames(queryValidFile);
+							queries[qnr-1].setRowNames(rowNames);
+						}
+					}
+				}
+			}
+			allQueries.add(queries);
+		}
+		return allQueries;
+	}
+	
+	
+	
+	/*
+	 * Read in query mixes / queries
+	 */
 	public void init() {
 		Query[] queries = null;
 		Integer[] queryRun = null;
 		
-		if(queryMixFN==null) {
-			Integer[] temp = { 1, 2, 2, 3, 2, 2, 4, 2, 2, 5, 7, 7, 6, 7, 7, 8, 9, 9, 8, 9, 9, 10, 10, 11, 12};
-//			Integer[] temp = { 1, 2, 2, 3, 2, 2, 4, 2, 2, 5, 7, 7, 6, 7, 7, 8, 9, 9, 8, 9, 9, 10, 10, 10, 10};
-//			Integer[] temp = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-//			Integer[] temp = { 8 };
-
-			queryRun = temp;
-		}
-		else {
-			queryRun = getQueryMixInfo(queryMixFN);
-		}
+		List<String> querymixDirs = getUseCaseQuerymixes();
 		
-		Integer maxQueryNr = 0;
-		for(int i=0;i<queryRun.length;i++) {
-			if(queryRun[i] != null && queryRun[i] > maxQueryNr)
-				maxQueryNr = queryRun[i];
-		}
-
-		queries = new Query[maxQueryNr];
+		List<Integer[]> queryRuns = getQuerymixRuns(querymixDirs);
 		
-		if(ignoreQueryFN==null) {
-			ignoreQueries = new boolean[maxQueryNr];
-			
-			for(int i=0;i<ignoreQueries.length;i++) {
-				ignoreQueries[i] = false;
+		List<Integer> maxQueryPerRun = getMaxQueryNrs(queryRuns);
+		
+		List<boolean[]> ignoreQueries = getIgnoredQueries(querymixDirs, maxQueryPerRun);
+		
+		List<Query[]> queriesOfQuerymixes = getQueries(querymixDirs, queryRuns, maxQueryPerRun);
+
+		queries = setupQueries(maxQueryPerRun, queriesOfQuerymixes);
+		
+		this.ignoreQueries = setupIgnoreQueries(maxQueryPerRun, ignoreQueries);
+		
+		queryRun = setupQueryRun(maxQueryPerRun, queryRuns);
+		
+		queryMix = new QueryMix(queries, queryRun);
+	}
+
+	/*
+	 * Combine the query sequences of different query mixes
+	 */
+	private Integer[] setupQueryRun(List<Integer> maxQueryPerRun,
+			List<Integer[]> queryRuns) {
+		Integer[] queryRun;
+		int nrOfQueriesInRun = 0;
+		
+		for(Integer[] qr: queryRuns)
+			nrOfQueriesInRun += qr.length;
+		queryRun = new Integer[nrOfQueriesInRun];
+		
+		int indexOffset = 0;
+		int queryOffset = 0;
+		
+		Iterator<Integer> maxQueryNrIterator = maxQueryPerRun.iterator();
+		Iterator<Integer[]> queryRunIterator = queryRuns.iterator();
+		while(queryRunIterator.hasNext()) {
+			Integer[] qr = queryRunIterator.next();
+			int queryIndex = 0;
+			for(Integer queryNr: qr) {
+				queryRun[indexOffset + queryIndex] = queryNr + queryOffset;
+				queryIndex++;
+			}
+			indexOffset += qr.length; 
+			queryOffset += maxQueryNrIterator.next();
+		}
+		return queryRun;
+	}
+	
+	/*
+	 * Combine ignored queries of different query mixes
+	 */
+	private boolean[] setupIgnoreQueries(List<Integer> maxQueryPerRun,
+			List<boolean[]> ignoreQueriesOfQuerymixes) {
+		boolean[] ignoreQueries;
+		int nrOfQueries = 0;
+		
+		for(int i: maxQueryPerRun)
+			nrOfQueries += i;
+		ignoreQueries = new boolean[nrOfQueries];
+		
+		int queryOffset = 0;
+		
+		Iterator<Integer> maxQueryNrIterator = maxQueryPerRun.iterator();
+		Iterator<boolean[]> ignoreQueriesIterator = ignoreQueriesOfQuerymixes.iterator();
+		while(ignoreQueriesIterator.hasNext()) {
+			boolean[] iqs = ignoreQueriesIterator.next();
+			int queryIndex = 0;
+			for(boolean igQuery: iqs) {
+				ignoreQueries[queryOffset + queryIndex] = igQuery;
+				queryIndex++;
 			}
 			
-			//WHICH QUERIES TO IGNORE
-//			ignoreQueries[4] = true;
+			queryOffset  += maxQueryNrIterator.next();
 		}
-		else
-			ignoreQueries = getIgnoreQueryInfo(ignoreQueryFN, maxQueryNr);
+		return ignoreQueries;
+	}
+	
+	private Query[] setupQueries(List<Integer> maxQueryPerRun,
+			List<Query[]> queriesOfQuerymixes) {
+		Query[] queries;
+		int nrOfQueries = 0;
+		
+		for(int i: maxQueryPerRun)
+			nrOfQueries += i;
+		queries = new Query[nrOfQueries];
 		
 		for(int i=0;i<queries.length;i++) {
 			queries[i] = null;
 		}
 		
-		for(int i=0;i<queryRun.length;i++) {
-			if(queryRun[i]!=null) {
-				Integer qnr = queryRun[i];
-				if(queries[qnr-1]==null) {
-					File queryFile = new File(queryDir, "query" + qnr + ".txt");
-					File queryDescFile = new File(queryDir, "query" + qnr + "desc.txt");
-					if(doSQL)
-						queries[qnr-1] = new Query(queryFile, queryDescFile, "@");
-					else
-						queries[qnr-1] = new Query(queryFile, queryDescFile, "%");
-					
-					//Read qualification information
-					if(qualification) {
-						File queryValidFile = new File(queryDir, "query" + qnr + "valid.txt");
-						String[] rowNames = getRowNames(queryValidFile);
-						queries[qnr-1].setRowNames(rowNames);
-					}
-				}
+		int queryOffset = 0;
+		
+		Iterator<Integer> maxQueryNrIterator = maxQueryPerRun.iterator();
+		Iterator<Query[]> queriesIterator = queriesOfQuerymixes.iterator();
+		while(queriesIterator.hasNext()) {
+			Query[] qs = queriesIterator.next();
+			int queryIndex = 0;
+			for(Query query: qs) {
+				queries[queryOffset + queryIndex] = query;
+				queryIndex++;
 			}
+			
+			queryOffset  += maxQueryNrIterator.next();
 		}
-		
-		
-		queryMix = new QueryMix(queries, queryRun);
+		return queries;
 	}
 	
 	private String[] getRowNames(File file) {
@@ -197,9 +359,8 @@ public class TestDriver {
 		return rowNames.toArray(new String[1]);
 	}
 	
-	private Integer[] getQueryMixInfo(String queryMixFilename) {
-		System.out.println("Reading query mix file: " + queryMixFilename);
-		File file = new File(queryMixFilename);
+	private Integer[] getQueryMixInfo(File file) {
+		System.out.println("Reading query mix file: " + file);
 		ArrayList<Integer> qm = new ArrayList<Integer>();
 
 		try {
@@ -220,15 +381,14 @@ public class TestDriver {
 			}
 			qmReader.close();
 		} catch(IOException e) {
-			System.err.println("Error processing query mix file: " + queryMixFilename);
+			System.err.println("Error processing query mix file: " + file);
 			System.exit(-1);
 		}
 		return qm.toArray(new Integer[1]);
 	}
 	
-	private boolean[] getIgnoreQueryInfo(String ignoreListFilename, int maxQueryNumber) {
-		System.out.println("Reading query ignore file: " + ignoreListFilename);
-		File file = new File(ignoreListFilename);
+	private boolean[] getIgnoreQueryInfo(File file, int maxQueryNumber) {
+		System.out.println("Reading query ignore file: " + file);
 		boolean[] ignoreQueries = new boolean[maxQueryNumber];
 		
 		for(int i=0;i<maxQueryNumber;i++)
@@ -254,7 +414,7 @@ public class TestDriver {
 			}
 			qmReader.close();
 		} catch(IOException e) {
-			System.err.println("Error processing query ignore file: " + ignoreListFilename);
+			System.err.println("Error processing query ignore file: " + file);
 			System.exit(-1);
 		}
 		return ignoreQueries;
@@ -494,9 +654,6 @@ public class TestDriver {
 				else if(args[i].equals("-idir")) {
 					resourceDir = args[i++ + 1];
 				}
-				else if(args[i].equals("-qdir")) {
-					queryDir = new File(args[i++ + 1]);
-				}
 				else if(args[i].equals("-w")) {
 					warmups = Integer.parseInt(args[i++ + 1]);
 				}
@@ -541,6 +698,9 @@ public class TestDriver {
 				}
 				else if(args[i].equals("-udataset")) {
 					updateFile = args[i++ + 1];
+				}
+				else if(args[i].equals("-ucf")) {
+					usecaseFile = new File(args[i++ + 1]);
 				}
 				else if(!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
@@ -723,9 +883,9 @@ public class TestDriver {
 						"\t-idir <data input directory>\n" +
 						"\t\tThe input directory for the Test Driver data\n" +
 						"\t\tdefault: " + TestDriverDefaultValues.resourceDir + "\n" +
-						"\t-qdir <query directory>\n" +
-						"\t\tThe directory containing the query data\n" +
-						"\t\tdefault: " + TestDriverDefaultValues.queryDir.getName() + "\n" +
+						"\t-ucf <use case file name>\n" +
+						"\t\tSpecifies where the use case description file can be found.\n" +
+						"\t\tdefault: 'usecases/explore.txt'\n" +
 						"\t-w <number of warm up runs before actual measuring>\n" +
 						"\t\tdefault: " + TestDriverDefaultValues.warmups + "\n"+
 						"\t-o <benchmark results output file>\n" +
