@@ -1,6 +1,7 @@
   prefix bsbm: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/>
   prefix bsbm-inst: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/instances/>
   prefix rev: <http://purl.org/stuff/rev#>
+  prefix xsd: <http://www.w3.org/2001/XMLSchema#>
 
   Select ?reviewer (avg(xsd:float(xsd:string(?score))) As ?reviewerAvgScore)
   {
