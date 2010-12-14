@@ -176,7 +176,7 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 	private String getRandomProducerURI() {
 		Integer producerNr = valueGen.randomInt(1, producerOfProduct.length-1);
 		
-		return Producer.getPrefixed(producerNr);
+		return Producer.getURIref(producerNr);
 	}
 	
 	/*
