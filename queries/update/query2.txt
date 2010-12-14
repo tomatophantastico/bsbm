@@ -3,7 +3,7 @@ PREFIX bsbm: <http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/vocabulary/>
 PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
 
 WITH <http://www4.wiwiss.fu-berlin.de/bizer/BerlinSPARQLBenchmark/>
-DELETE
+DELETE WHERE
+{ GRAPH <http://www4.wiwiss.fu-berlin.de/bizer/BerlinSPARQLBenchmark/>
 { %Offer% ?p ?o }
-WHERE
-{ %Offer% ?p ?o }
+}
