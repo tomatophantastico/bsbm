@@ -1039,7 +1039,9 @@ public class TestDriver {
 				+ "\n"
 				+ "\t-ucf <use case file name>\n"
 				+ "\t\tSpecifies where the use case description file can be found.\n"
-				+ "\t\tdefault: 'usecases/explore.txt'\n"
+				+ "\t\tdefault: "
+				+ TestDriverDefaultValues.usecaseFile
+				+ "\n"
 				+ "\t-w <number of warm up runs before actual measuring>\n"
 				+ "\t\tdefault: "
 				+ TestDriverDefaultValues.warmups
