@@ -119,7 +119,7 @@ public class Generator {
 		namedGraph = isNamedGraphSerializer();
 		
 		outputDir = new File(outputDirectory);
-		if(outputDir.mkdirs()) {
+		if(!outputDir.mkdirs()) {
 			System.err.println("Could not create directories for test data output.");
 			System.exit(-1);
 		}
