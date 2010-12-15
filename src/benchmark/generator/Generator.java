@@ -41,7 +41,7 @@ public class Generator {
 	private static boolean generateUpdateDataset = false;
 	private static String updateDatasetFileName = "dataset_update";
 	private static String updateDatasetTransactionSeparator = "\n#__SEP__\n";
-	private static int nrOfTransactionsInUpdateDataset = 500;
+	private static int nrOfTransactionsInUpdateDataset = 1000;
 	private static int nrOfProductsPerTransaction = 1;
 	private static int nrOfMinProductNrForUpdate = Integer.MAX_VALUE;
 	private static Serializer updateDatasetSerializer = null;
@@ -1128,7 +1128,7 @@ public class Generator {
 						"\t-ud Switch on generation of update dataset\n" +
 						"\t-tc <number of update transactions>\n" +
 						"\t\tShould be used in combination with -ud.\n" +
-						"\t\tdefault: 500\n" +
+						"\t\tdefault: 1000\n" +
 						"\t-ppt <number of products per update transactions>\n" +
 						"\t\tShould be used in combination with -ud.\n" +
 						"\t\tdefault: 1\n";
