@@ -38,7 +38,7 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		
 		for(int i=0;i<parameterTypes.length;i++) {
 			if(parameterTypes[i]==Query.PRODUCT_TYPE_URI) {
-				pt = getRandomProductType();
+				pt = ParameterGenerator.getRandomProductType(productTypeLeaves, valueGen);
 				parameters[i] = pt.toString();
 			}
 			else if(parameterTypes[i]==Query.PRODUCT_FEATURE_URI)
@@ -61,11 +61,16 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 				parameters[i] = getUpdateTransactionData();
 			else if(parameterTypes[i]==Query.CONSECUTIVE_MONTH) {
 				if(randomDate==null)
-					randomDate = getRandomPublishDate();
+					randomDate = ParameterGenerator.getRandomDate(publishDateMin, valueGen, 309);
 				int monthNr = (Integer)query.getAdditionalParameterInfo(i);
-				parameters[i] = getConsecutiveMonth(randomDate, monthNr);
+				parameters[i] = ParameterGenerator.getConsecutiveMonth(randomDate, monthNr);
 			} else if(parameterTypes[i]==Query.PRODUCER_URI)
 				parameters[i] = getRandomProducerURI();
+			else if(parameterTypes[i]==Query.PRODUCT_TYPE_RANGE) {
+				Integer[] rangeModifiers = (Integer[])query.getAdditionalParameterInfo(i);
+				int ptnr = ParameterGenerator.getRandomProductTypeNrFromRange(maxProductTypePerLevel, rangeModifiers, valueGen);
+				parameters[i] = ProductType.getURIRef(ptnr);
+			}
 			else
 				parameters[i] = null;
 		}
@@ -84,33 +89,12 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 	}
 	
 	/*
-	 * Get date string for ConsecutiveMonth
-	 */
-	private String getConsecutiveMonth(GregorianCalendar date, int monthNr) {
-		GregorianCalendar gClone = (GregorianCalendar)date.clone();
-		gClone.add(GregorianCalendar.DAY_OF_MONTH, 28*monthNr);
-		return DateGenerator.formatDate(gClone);
-	}
-	
-	/*
 	 * Get number distinct random Product Feature URIs of a certain Product Type
 	 */
 	private String[] getRandomProductFeatures(ProductType pt, Integer number) {
-		ArrayList<Integer> pfs = new ArrayList<Integer>();
 		String[] productFeatures = new String[number];
 		
-		ProductType temp = pt;
-		while(temp!=null) {
-			List<Integer> tempList = temp.getFeatures();
-			if(tempList!=null)
-				pfs.addAll(temp.getFeatures());
-			temp = temp.getParent();
-		}
-		
-		if(pfs.size() < number) {
-			System.err.println(pt.toString() + " doesn't contain " + number + " different Product Features!");
-			System.exit(-1);
-		}
+		List<Integer> pfs = ParameterGenerator.getRandomProductFeatures(pt, number);
 		
 		for(int i=0;i<number;i++) {
 			Integer index = valueGen.randomInt(0, pfs.size()-1);
@@ -120,31 +104,13 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		
 		return productFeatures;
 	}
-	
-	/*
-	 * Get a random Product Type URI
-	 */
-	private ProductType getRandomProductType() {
-		Integer index = valueGen.randomInt(0, productTypeLeaves.length-1);
-		
-		return productTypeLeaves[index];
-	}
-	
-	/*
-	 * Get a random date from (today-365) to (today-56)
-	 */
-	private GregorianCalendar getRandomPublishDate() {
-		Integer dayOffset = valueGen.randomInt(0, 309);
-		GregorianCalendar gClone = (GregorianCalendar)publishDateMin.clone();
-		gClone.add(GregorianCalendar.DAY_OF_MONTH, dayOffset);
-		return gClone;
-	}
+
 	
 	/*
 	 * Get a random Product URI
 	 */
 	private String getRandomProductURI() {
-		Integer productNr = valueGen.randomInt(1, productCount);
+		Integer productNr = getRandomProductNr();
 		Integer producerNr = getProducerOfProduct(productNr);
 		
 		return Product.getURIref(productNr, producerNr);
@@ -179,54 +145,6 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 		return Producer.getURIref(producerNr);
 	}
 	
-	/*
-	 * Get random word from word list
-	 */
-	private String getRandomWord() {
-		Integer index = valueGen.randomInt(0, wordList.length-1);
-		
-		return wordList[index];
-	}
-	
-	/*
-	 * Returns the ProducerNr of given Product Nr.
-	 */
-	private Integer getProducerOfProduct(Integer productNr) {
-		Integer producerNr = Arrays.binarySearch(producerOfProduct, productNr);
-		if(producerNr<0)
-			producerNr = - producerNr - 1;
-		
-		return producerNr;
-	}
-	
-	/*
-	 * Returns the ProducerNr of given Product Nr.
-	 */
-	private Integer getVendorOfOffer(Integer offerNr) {
-		Integer vendorNr = Arrays.binarySearch(vendorOfOffer, offerNr);
-		if(vendorNr<0)
-			vendorNr = - vendorNr - 1;
-		
-		return vendorNr;
-	}
-	
-	/*
-	 * Returns the Rating Site Nr of given Review Nr
-	 */
-	private Integer getRatingsiteOfReviewer(Integer reviewNr) {
-		Integer ratingSiteNr = Arrays.binarySearch(ratingsiteOfReview, reviewNr);
-		if(ratingSiteNr<0)
-			ratingSiteNr = - ratingSiteNr - 1;
-		
-		return ratingSiteNr;
-	}
-	
-	/*
-	 * Returns a random number between 1-500
-	 */
-	private Integer getProductPropertyNumeric() {
-		return valueGen.randomInt(1, 500);
-	}
 	
 	/*
 	 * Return the triples to inserted into the store

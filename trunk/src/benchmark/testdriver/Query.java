@@ -30,6 +30,7 @@ public class Query {
 	public static final byte CONSECUTIVE_MONTH = 10;
 	public static final byte UPDATE_TRANSACTION_DATA = 11;
 	public static final byte PRODUCER_URI = 12;
+	public static final byte PRODUCT_TYPE_RANGE = 13;
 
 	// Initialize Parameter mappings
 	static {
@@ -47,6 +48,7 @@ public class Query {
 		parameterMapping.put("ConsecutiveMonth", CONSECUTIVE_MONTH);
 		parameterMapping.put("UpdateTransactionData", UPDATE_TRANSACTION_DATA);
 		parameterMapping.put("ProducerURI", PRODUCER_URI);
+		parameterMapping.put("ProductTypeRangeURI", PRODUCT_TYPE_RANGE);
 	}
 
 	// query type constants
@@ -235,6 +237,21 @@ public class Query {
 				returnValue = Integer.parseInt(additionalInfo);
 			} catch(NumberFormatException e) {
 				System.err.println("Illegal parameter for ConsecutiveMonth: " + additionalInfo);
+				System.exit(-1);
+			}
+		} else if(type==Query.PRODUCT_TYPE_RANGE) {
+			try {
+				Integer[] params = new Integer[2];
+				String[] splitString = additionalInfo.split("_");
+				if(splitString.length!=2) {
+					System.err.println("Illegal parameters for ProductTypeRange: " + additionalInfo);
+					System.exit(-1);
+				}
+				params[0] = Integer.parseInt(splitString[0]);
+				params[1] = Integer.parseInt(splitString[1]);
+				returnValue = params;
+			} catch(NumberFormatException e) {
+				System.err.println("Illegal parameters for ProductTypeRange: " + additionalInfo);
 				System.exit(-1);
 			}
 		}

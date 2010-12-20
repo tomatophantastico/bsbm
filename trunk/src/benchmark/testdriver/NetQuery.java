@@ -11,6 +11,8 @@ public class NetQuery {
 	Long end;
 	
 	protected NetQuery(String serviceURL, String query, byte queryType, String defaultGraph, int timeout) {
+		//TODO DELETE
+		System.err.println(query);
 		try {
 			String urlString = null;
 			if(queryType==Query.UPDATE_TYPE)

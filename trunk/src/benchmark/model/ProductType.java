@@ -95,4 +95,14 @@ public class ProductType extends BSBMResource implements Serializable{
 		s.append(nr);
 		return s.toString();
 	}
+	
+	public static String getURIRef(int productTypeNr) {
+		StringBuilder s = new StringBuilder();
+		s.append("<");
+		s.append(BSBM.INST_NS);
+		s.append("ProductType");
+		s.append(productTypeNr);
+		s.append(">");
+		return s.toString();
+	}
 }
