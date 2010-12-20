@@ -67,21 +67,9 @@ public class SQLParameterPool extends AbstractParameterPool {
 	 * Get number distinct random Product Feature URIs of a certain Product Type
 	 */
 	private Integer[] getRandomProductFeatures(ProductType pt, Integer number) {
-		ArrayList<Integer> pfs = new ArrayList<Integer>();
 		Integer[] productFeatures = new Integer[number];
 		
-		ProductType temp = pt;
-		while(temp!=null) {
-			List<Integer> tempList = temp.getFeatures();
-			if(tempList!=null)
-				pfs.addAll(tempList);
-			temp = temp.getParent();
-		}
-		
-		if(pfs.size() < number) {
-			System.err.println(pt.toString() + " doesn't contain " + number + " different Product Features!");
-			System.exit(-1);
-		}
+		List<Integer> pfs = ParameterGenerator.getRandomProductFeatures(pt, number);
 		
 		for(int i=0;i<number;i++) {
 			Integer index = valueGen.randomInt(0, pfs.size()-1);
@@ -122,24 +110,7 @@ public class SQLParameterPool extends AbstractParameterPool {
 		return valueGen.randomInt(1, reviewCount);
 	}
 	
-	/*
-	 * Get random word from word list
-	 */
-	private String getRandomWord() {
-		Integer index = valueGen.randomInt(0, wordList.length-1);
-		
-		return wordList[index];
-	}
 	
-	
-	/*
-	 * Returns a random number between 1-500
-	 */
-	private Integer getProductPropertyNumeric() {
-		return valueGen.randomInt(1, 500);
-	}
-
-
 	@Override
 	protected String formatDateString(GregorianCalendar date) {
 		return DateGenerator.formatDate(currentDate);

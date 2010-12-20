@@ -71,6 +71,8 @@ public class Generator {
 	
 	static int offerCount;
 	static int reviewCount;
+	static int productTypeCount;
+	static List<Integer> maxProductTypeNrPerLevel;
 	
 	static boolean namedGraph;
 
@@ -119,10 +121,8 @@ public class Generator {
 		namedGraph = isNamedGraphSerializer();
 		
 		outputDir = new File(outputDirectory);
-		if(!outputDir.mkdirs()) {
-			System.err.println("Could not create directories for test data output.");
-			System.exit(-1);
-		}
+		outputDir.mkdirs();
+
 		wordList = new HashMap<String, Integer>();
 		
 		dictionary1 = new TextGenerator(dictionary1File, seedGenerator.nextLong());
@@ -169,12 +169,15 @@ public class Generator {
 			pth.createNewFile();
 			productTypeOutput = new ObjectOutputStream(new FileOutputStream(pth, false));
 			productTypeOutput.writeObject(productTypeLeaves.toArray(new ProductType[0]));
+			productTypeOutput.writeInt(productTypeCount);
+			productTypeOutput.writeObject(maxProductTypeNrPerLevel);
 		} catch(IOException e) {
 			System.err.println("Could not open or create file " + pth.getAbsolutePath());
 			System.err.println(e.getMessage());
 			System.exit(-1);
 		}
 		
+	
 		//Product-Producer Relationships in outputDir/pp.dat
 		File pp = new File(outputDir, "pp.dat");
 		ObjectOutputStream productProducerOutput;
@@ -286,11 +289,14 @@ public class Generator {
 		else
 			branchFt = calcBranchingFactors(10);
 
+		
 		productTypeLeaves = new ArrayList<ProductType>();
 		productTypeNodes = new ArrayList<ProductType>();
+		maxProductTypeNrPerLevel = new ArrayList<Integer>();
 		
 		LinkedList<ProductType> typeQueue = new LinkedList<ProductType>();
 		ProductType root = new ProductType(1,"Thing", "The Product Type of all Products", null);
+
 		if(!namedGraph) {
 			root.setPublisher(1);
 			root.setPublishDate(publishDateGen.randomDateInMillis());
@@ -309,12 +315,17 @@ public class Generator {
 		typeQueue.offer(root);
 		bundle.add(root);
 		
+		int oldDepth = -1;
 		int nr = 1;
 		while(!typeQueue.isEmpty())
 		{
 			ProductType ptype = typeQueue.poll();
 			
 			int depth = ptype.getDepth();
+			if(oldDepth!=depth) {
+				oldDepth = depth;
+				maxProductTypeNrPerLevel.add(nr);
+			}
 		
 			for(int i=0;i<branchFt[ptype.getDepth()];i++)
 			{
@@ -344,8 +355,11 @@ public class Generator {
 				}
 			}
 		}
+		if(nr!=maxProductTypeNrPerLevel.get(maxProductTypeNrPerLevel.size()-1))
+			maxProductTypeNrPerLevel.add(nr);
 		bundle.commitToSerializer();
-		System.out.println("Product Type Hierarchy of depth " + branchFt.length + " with " + (productTypeLeaves.size()+productTypeNodes.size()) + " Product Types generated.\n");
+		System.out.println("Product Type Hierarchy of depth " + branchFt.length + " with " + nr + " Product Types generated.\n");
+		productTypeCount = nr;
 	}
 	
 	public static Long[] generateSeedsProductFeature() {
@@ -1072,6 +1086,9 @@ public class Generator {
 				else if(args[i].equals("-fn")) {
 					outputFileName = args[i++ + 1];
 				}
+				else if(args[i].equals("-ufn")) {
+					updateDatasetFileName = args[i++ + 1];
+				}
 				else if(args[i].equals("-nof")) {
 					nrOfOutputFiles = Integer.parseInt(args[i++ + 1]);
 				}
@@ -1122,6 +1139,9 @@ public class Generator {
 						"\t-fn <dataset file name>\n" +
 						"\t\tThe file name without the output format suffix\n" +
 						"\t\tdefault: dataset\n" +
+						"\t-ufn <update dataset file name>\n" +
+						"\t\tThe file name without the output format suffix\n" +
+						"\t\tdefault: dataset_update\n" +
 						"\t-nof <number of output files>\n" +
 						"\t\tThe number of output files. Only for -s nt or ttl\n" +
 						"\t\tdefault: 1\n" +
