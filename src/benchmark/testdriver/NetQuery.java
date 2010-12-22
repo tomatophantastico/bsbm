@@ -11,13 +11,12 @@ public class NetQuery {
 	Long end;
 	
 	protected NetQuery(String serviceURL, String query, byte queryType, String defaultGraph, int timeout) {
+		String urlString = null;
 		try {
-			String urlString = null;
 			if(queryType==Query.UPDATE_TYPE)
 				urlString = serviceURL;
 			else
 				urlString = serviceURL + "?query=" + URLEncoder.encode(query, "UTF-8");
-//			System.out.println(urlString);
 			
 			if(defaultGraph!=null)
 				urlString +=  "&default-graph-uri=" + defaultGraph;
@@ -28,12 +27,16 @@ public class NetQuery {
 			configureConnection(query, queryType, timeout);
 		} catch(UnsupportedEncodingException e) {
 			System.err.println(e.toString());
+			e.printStackTrace();
 			System.exit(-1);
 		} catch(MalformedURLException e) {
-			System.err.println(e.toString());
+			System.err.println(e.toString() + " for URL: " + urlString);
+			System.err.println(serviceURL);
+			e.printStackTrace();
 			System.exit(-1);
 		} catch(IOException e) {
 			System.err.println(e.toString());
+			e.printStackTrace();
 			System.exit(-1);
 		}
 	}
