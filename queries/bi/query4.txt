@@ -6,22 +6,26 @@
   {
     { Select ?feature (avg(xsd:float(?price)) As ?withFeaturePrice)
       {
-        ?product a %ProductType% .
-        ?product bsbm:productFeature ?feature .
-        ?offer bsbm:product ?product .
-        ?offer bsbm:price ?price .
+        ?product a %ProductType% ;
+                 bsbm:productFeature ?feature .
+        ?offer bsbm:product ?product ;
+               bsbm:price ?price .
       }
       Group By ?feature
     }
     { Select ?feature (avg(xsd:float(?price)) As ?withoutFeaturePrice)
       {
+        { Select distinct ?feature { 
+          ?p a %ProductType% ;
+             bsbm:productFeature ?feature .
+        } }
         ?product a %ProductType% .
-        ?offer bsbm:product ?product .
-        ?offer bsbm:price ?price .
-        minus { ?product bsbm:productFeature ?feature }
+        ?offer bsbm:product ?product ;
+               bsbm:price ?price .
+        FILTER NOT EXISTS { ?product bsbm:productFeature ?feature }
       }
       Group By ?feature
     }
   }
-  Order By desc(?withFeaturePrice/?withoutFeaturePrice)
+  Order By desc(?withFeaturePrice/?withoutFeaturePrice) ?feature
   Limit 10
