@@ -14,5 +14,5 @@
       Group By ?otherProduct
     }
   }
-  Order By desc(?sameFeatures)
+  Order By desc(?sameFeatures) ?otherProduct
   Limit 10

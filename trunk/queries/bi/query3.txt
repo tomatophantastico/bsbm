@@ -4,7 +4,7 @@
   prefix dc: <http://purl.org/dc/elements/1.1/>
   prefix xsd: <http://www.w3.org/2001/XMLSchema#>
 
-  Select ?product (xsd:float(xsd:string(?monthCount))/?monthBeforeCount As ?ratio)
+  Select ?product (xsd:float(?monthCount)/?monthBeforeCount As ?ratio)
   {
     { Select ?product (count(?review) As ?monthCount)
       {
@@ -24,5 +24,5 @@
       Having (count(?review)>0)
     }
   }
-  Order By desc(xsd:float(xsd:string(?monthCount)) / ?monthBeforeCount)
+  Order By desc(xsd:float(?monthCount) / ?monthBeforeCount) ?product
   Limit 10

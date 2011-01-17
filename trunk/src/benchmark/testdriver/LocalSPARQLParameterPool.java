@@ -152,6 +152,11 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 	private String getUpdateTransactionData() {
 		StringBuilder s = new StringBuilder();
 		String line = null;
+		if(updateFileReader==null) {
+			System.err.println("Error: No update dataset file specified! Use -udataset option of the test driver with a generated update dataset file as argument.");
+			System.exit(-1);
+		}
+		
 		try {
 			while((line=updateFileReader.readLine()) != null) {
 				if(line.equals("#__SEP__"))

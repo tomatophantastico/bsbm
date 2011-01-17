@@ -16,5 +16,5 @@ Select ?productType ?reviewCount
   Group By ?productType
  }
 }
-Order By desc(?reviewCount)
+Order By desc(?reviewCount) ?productType
 Limit 10

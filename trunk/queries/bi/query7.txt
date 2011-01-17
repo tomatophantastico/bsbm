@@ -17,7 +17,6 @@
       Order By desc(?offerCount)
       Limit 1000
     }
-    ?product a %ProductType% . 
     FILTER NOT EXISTS
     {
       ?offer bsbm:product ?product .

@@ -3,9 +3,9 @@
   prefix rev: <http://purl.org/stuff/rev#>
   prefix xsd: <http://www.w3.org/2001/XMLSchema#>
 
-  Select ?reviewer (avg(xsd:float(xsd:string(?score))) As ?reviewerAvgScore)
+  Select ?reviewer (avg(xsd:float(?score)) As ?reviewerAvgScore)
   {
-    { Select (avg(xsd:float(xsd:string(?score))) As ?avgScore)
+    { Select (avg(xsd:float(?score)) As ?avgScore)
       {
         ?product bsbm:producer %Producer% .
         ?review bsbm:reviewFor ?product .
@@ -24,4 +24,4 @@
     { ?review bsbm:rating4 ?score . }
   }
   Group By ?reviewer
-  Having (avg(xsd:float(xsd:string(?score))) > min(?avgScore) * 1.5)
+  Having (avg(xsd:float(?score)) > min(?avgScore) * 1.5)
