@@ -68,7 +68,7 @@ public class LocalSPARQLParameterPool extends AbstractParameterPool {
 				parameters[i] = getRandomProducerURI();
 			else if(parameterTypes[i]==Query.PRODUCT_TYPE_RANGE) {
 				Integer[] rangeModifiers = (Integer[])query.getAdditionalParameterInfo(i);
-				int ptnr = ParameterGenerator.getRandomProductTypeNrFromRange(maxProductTypePerLevel, rangeModifiers, valueGen);
+				int ptnr = ParameterGenerator.getRandomProductTypeNrFromRange(maxProductTypePerLevel, rangeModifiers, valueGen, valueGen2);
 				parameters[i] = ProductType.getURIRef(ptnr);
 			}
 			else

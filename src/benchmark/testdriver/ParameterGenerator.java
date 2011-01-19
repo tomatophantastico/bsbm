@@ -55,7 +55,7 @@ public class ParameterGenerator {
 		return gClone;
 	}
 	
-	public static int getRandomProductTypeNrFromRange(List<Integer> maxProductTypePerLevel, Integer[] rangeModifier, ValueGenerator valueGen) {
+	public static int getRandomProductTypeNrFromRange(List<Integer> maxProductTypePerLevel, Integer[] rangeModifier, ValueGenerator valueGen, ValueGenerator valueGen2) {
 		int minLevel = 0;
 		int maxLevel = maxProductTypePerLevel.size()-1;
 
@@ -75,11 +75,15 @@ public class ParameterGenerator {
 			System.err.println("Trying to pick a random product type number from illegal level range " + minLevel + " to " + maxLevel);
 			System.exit(-1);
 		}
+		
+		if(rangeModifier!=null && rangeModifier[2]==1) {
+			int levelToChooseFrom = valueGen2.randomInt(minLevel, maxLevel);
+			minLevel = levelToChooseFrom;
+			maxLevel = levelToChooseFrom;
+		}
 			
 		int min = getMinProductTypeNrOfLevel(minLevel, maxProductTypePerLevel);
 		int max = maxProductTypePerLevel.get(maxLevel);
-		
-		System.out.println(min + " " + max);
 		
 		return valueGen.randomInt(min, max);
 	}
