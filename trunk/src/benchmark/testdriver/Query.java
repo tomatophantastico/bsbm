@@ -35,8 +35,7 @@ public class Query {
 	// Initialize Parameter mappings
 	static {
 		parameterMapping = new HashMap<String, Byte>();
-		parameterMapping.put("ProductPropertyNumericValue",
-				PRODUCT_PROPERTY_NUMERIC);
+		parameterMapping.put("ProductPropertyNumericValue",	PRODUCT_PROPERTY_NUMERIC);
 		parameterMapping.put("ProductFeatureURI", PRODUCT_FEATURE_URI);
 		parameterMapping.put("ProductTypeURI", PRODUCT_TYPE_URI);
 		parameterMapping.put("CurrentDate", CURRENT_DATE);
@@ -241,14 +240,20 @@ public class Query {
 			}
 		} else if(type==Query.PRODUCT_TYPE_RANGE) {
 			try {
-				Integer[] params = new Integer[2];
+				Integer[] params = new Integer[3];
 				String[] splitString = additionalInfo.split("_");
-				if(splitString.length!=2) {
+				if(splitString.length<2 || splitString.length>3) {
 					System.err.println("Illegal parameters for ProductTypeRange: " + additionalInfo);
 					System.exit(-1);
 				}
 				params[0] = Integer.parseInt(splitString[0]);
 				params[1] = Integer.parseInt(splitString[1]);
+				// a "lvleq"-suffix means that each level in the product type hierarchy is chosen equally
+				if(splitString.length==3 && splitString[2].equals("lvleq"))
+					params[2] = 1;
+				else
+					params[2] = 0;
+				
 				returnValue = params;
 			} catch(NumberFormatException e) {
 				System.err.println("Illegal parameters for ProductTypeRange: " + additionalInfo);

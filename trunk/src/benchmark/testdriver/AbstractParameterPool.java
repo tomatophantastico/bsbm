@@ -17,6 +17,7 @@ import benchmark.model.ProductType;
 
 public abstract class AbstractParameterPool {
 	protected ValueGenerator valueGen;
+	protected ValueGenerator valueGen2;
 	protected RandomBucket countryGen;
 	protected GregorianCalendar currentDate;
 	protected String currentDateString;
@@ -43,7 +44,10 @@ public abstract class AbstractParameterPool {
     protected void init(File resourceDir, long seed) {
 		Random seedGen = new Random(seed);
 		valueGen = new ValueGenerator(seedGen.nextLong());
+
 		countryGen = Generator.createCountryGenerator(seedGen.nextLong());
+		
+		valueGen2 = new ValueGenerator(seedGen.nextLong());
     	
 		//Read in the Product Type hierarchy from resourceDir/pth.dat
 		readProductTypeHierarchy(resourceDir);
