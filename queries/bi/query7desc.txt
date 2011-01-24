@@ -1,4 +1,4 @@
 QueryType=Select
 
-ProductType=ProductTypeRangeURI_1_0_lvleq
+ProductType=ProductTypeRangeURI_0_0_lvleq
 Country=CountryURI
