@@ -1,3 +1,3 @@
 QueryType=Select
 
-ProductType=ProductTypeURI
+ProductType=ProductTypeRangeURI_0_0_lvleq
