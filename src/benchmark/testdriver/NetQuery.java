@@ -13,13 +13,16 @@ public class NetQuery {
 	protected NetQuery(String serviceURL, String query, byte queryType, String defaultGraph, int timeout) {
 		String urlString = null;
 		try {
+			char delim=serviceURL.indexOf('?')==-1?'?':'&';
 			if(queryType==Query.UPDATE_TYPE)
 				urlString = serviceURL;
-			else
-				urlString = serviceURL + "?query=" + URLEncoder.encode(query, "UTF-8");
+			else {
+				urlString = serviceURL + delim + "query=" + URLEncoder.encode(query, "UTF-8");
+				delim = '&';
+			}
 			
 			if(defaultGraph!=null)
-				urlString +=  "&default-graph-uri=" + defaultGraph;
+				urlString +=  delim + "default-graph-uri=" + defaultGraph;
 
 			URL url = new URL(urlString);
 			conn = (HttpURLConnection)url.openConnection();
