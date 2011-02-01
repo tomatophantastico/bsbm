@@ -20,13 +20,15 @@ public class NTriples implements Serializer {
 	
 	public NTriples(String file, boolean forwardChaining, int nrOfOutputFiles)
 	{
+		int nrOfDigits = ((int)Math.log10(nrOfOutputFiles)) + 1;
+		String formatString = "%0" + nrOfDigits + "d";
 		try{
 			fileWriter = new FileWriter[nrOfOutputFiles];
 			if(nrOfOutputFiles==1)
 				fileWriter[0] = new FileWriter(file + ".nt");
 			else
 				for(int i=1;i<=nrOfOutputFiles;i++)
-					fileWriter[i-1] = new FileWriter(file + i + ".nt");
+					fileWriter[i-1] = new FileWriter(file + String.format(formatString, i) + ".nt");
 		} catch(IOException e){
 			System.err.println("Could not open File");
 			System.exit(-1);
