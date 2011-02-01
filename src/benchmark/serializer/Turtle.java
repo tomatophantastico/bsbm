@@ -22,13 +22,15 @@ public class Turtle implements Serializer {
 	
 	public Turtle(String file, boolean forwardChaining, int nrOfOutputFiles)
 	{
+		int nrOfDigits = ((int)Math.log10(nrOfOutputFiles)) + 1;
+		String formatString = "%0" + nrOfDigits + "d";
 		try{
 			dataFileWriter = new FileWriter[nrOfOutputFiles];
 			if(nrOfOutputFiles==1)
 				this.dataFileWriter[0] = new FileWriter(file + ".ttl");
 			else
 				for(int i=1;i<=nrOfOutputFiles;i++)
-					dataFileWriter[i-1] = new FileWriter(file + i + ".ttl");
+					dataFileWriter[i-1] = new FileWriter(file + String.format(formatString, i) + ".ttl");
 				
 		} catch(IOException e){
 			System.err.println("Could not open File for writing.");
