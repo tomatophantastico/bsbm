@@ -250,12 +250,17 @@ private int countBytes(InputStream is) {
 			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, 0);
 
 		InputStream is = qe.exec();
-		Document doc = getXMLDocument(is);
-		XMLOutputter outputter = new XMLOutputter();
-		logResultInfo(query, outputter.outputString(doc));
 		
-		if(queryType==Query.SELECT_TYPE)
-			queryResult = gatherResultInfoForSelectQuery(queryString, queryNr, sorted, doc, rowNames);
+		if(queryType!=Query.UPDATE_TYPE) {
+			Document doc = getXMLDocument(is);
+			XMLOutputter outputter = new XMLOutputter();
+			logResultInfo(query, outputter.outputString(doc));
+		
+			if(queryType==Query.SELECT_TYPE)
+				queryResult = gatherResultInfoForSelectQuery(queryString, queryNr, sorted, doc, rowNames);
+		}
+		else
+			logResultInfo(query, "");
 		
 		if(queryResult!=null)
 			queryResult.setRun(query.getQueryMix().getRun());
