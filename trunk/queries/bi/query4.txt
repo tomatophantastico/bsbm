@@ -4,7 +4,7 @@
 
   Select ?feature (?withFeaturePrice/?withoutFeaturePrice As ?priceRatio)
   {
-    { Select ?feature (avg(xsd:float(?price)) As ?withFeaturePrice)
+    { Select ?feature (avg(xsd:float(xsd:string(?price))) As ?withFeaturePrice)
       {
         ?product a %ProductType% ;
                  bsbm:productFeature ?feature .
@@ -13,7 +13,7 @@
       }
       Group By ?feature
     }
-    { Select ?feature (avg(xsd:float(?price)) As ?withoutFeaturePrice)
+    { Select ?feature (avg(xsd:float(xsd:string(?price))) As ?withoutFeaturePrice)
       {
         { Select distinct ?feature { 
           ?p a %ProductType% ;
