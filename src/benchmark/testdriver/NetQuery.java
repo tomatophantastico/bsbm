@@ -19,15 +19,14 @@ public class NetQuery {
 			else {
 				urlString = serviceURL + delim + "query=" + URLEncoder.encode(query, "UTF-8");
 				delim = '&';
+	                        if(defaultGraph!=null)
+	                                urlString +=  delim + "default-graph-uri=" + defaultGraph;
 			}
 			
-			if(defaultGraph!=null)
-				urlString +=  delim + "default-graph-uri=" + defaultGraph;
-
 			URL url = new URL(urlString);
 			conn = (HttpURLConnection)url.openConnection();
 
-			configureConnection(query, queryType, timeout);
+			configureConnection(query, queryType, timeout, defaultGraph);
 		} catch(UnsupportedEncodingException e) {
 			System.err.println(e.toString());
 			e.printStackTrace();
@@ -44,7 +43,7 @@ public class NetQuery {
 		}
 	}
 
-	private void configureConnection(String query, byte queryType, int timeout)
+	private void configureConnection(String query, byte queryType, int timeout, String defaultGraph)
 			throws ProtocolException, IOException{
 		if(queryType==Query.UPDATE_TYPE)
 			conn.setRequestMethod("POST");
@@ -62,8 +61,12 @@ public class NetQuery {
 		if(queryType==Query.UPDATE_TYPE) {
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			OutputStream out = conn.getOutputStream();
-			out.write("request=".getBytes());
+			out.write("query=".getBytes());
 			out.write(URLEncoder.encode(query, "UTF-8").getBytes());
+			if(defaultGraph!=null) {
+				out.write("&default-graph-uri=".getBytes());
+				out.write(defaultGraph.getBytes());
+			}
 			out.flush();
 		}
 	}

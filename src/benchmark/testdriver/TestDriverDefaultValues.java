@@ -16,6 +16,6 @@ public class TestDriverDefaultValues {
 	public static boolean qualification = false;
 	public static String qualificationFile = "run.qual";
 	public static int qmsPerPeriod = 50;
-	public static double percentDifference = 0.02;
+	public static double percentDifference = 0.01;
 	public static int nrOfPeriods = 5;
 }
