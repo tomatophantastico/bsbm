@@ -18,4 +18,5 @@ public class TestDriverDefaultValues {
 	public static int qmsPerPeriod = 50;
 	public static double percentDifference = 0.01;
 	public static int nrOfPeriods = 5;
+	public static String updateQueryParameter = "query"; 
 }

@@ -61,7 +61,8 @@ public class NetQuery {
 		if(queryType==Query.UPDATE_TYPE) {
 			conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			OutputStream out = conn.getOutputStream();
-			out.write("query=".getBytes());
+			String queryParamName = TestDriver.sparqlUpdateQueryParameter + "="; 
+			out.write(queryParamName.getBytes());
 			out.write(URLEncoder.encode(query, "UTF-8").getBytes());
 			if(defaultGraph!=null) {
 				out.write("&default-graph-uri=".getBytes());
