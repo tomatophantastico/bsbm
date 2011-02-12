@@ -59,6 +59,7 @@ public class TestDriver {
 														// generators
 	protected String sparqlEndpoint = null;
 	protected String sparqlUpdateEndpoint = null;
+	protected static String sparqlUpdateQueryParameter = TestDriverDefaultValues.updateQueryParameter;
 	protected String defaultGraph = TestDriverDefaultValues.defaultGraph;
 	protected String resourceDir = TestDriverDefaultValues.resourceDir;// Where
 																		// to
@@ -773,6 +774,8 @@ public class TestDriver {
 					updateFile = args[i++ + 1];
 				} else if (args[i].equals("-ucf")) {
 					usecaseFile = new File(args[i++ + 1]);
+				} else if (args[i].equals("-uqp")) {
+					sparqlUpdateQueryParameter = args[i++ + 1];
 				} else if (!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
 				} else {
@@ -1089,7 +1092,12 @@ public class TestDriver {
 				+ TestDriverDefaultValues.qualificationFile
 				+ "\n"
 				+ "\t-rampup\n"
-				+ "\t\tRun ramp-up to reach steady state.\n";
+				+ "\t\tRun ramp-up to reach steady state.\n"
+				+ "\t-uqp <update query parameter>\n"
+				+ "\t\tThe forms parameter name for the query string.\n"
+				+ "\t\tdefault: "
+				+ TestDriverDefaultValues.updateQueryParameter
+				+ "\n";
 
 		System.out.print(output);
 	}
