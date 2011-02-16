@@ -9,10 +9,12 @@ public class NetQuery {
 	HttpURLConnection conn;
 	Long start;
 	Long end;
+	String queryString;
 	
 	protected NetQuery(String serviceURL, String query, byte queryType, String defaultGraph, int timeout) {
 		String urlString = null;
 		try {
+			queryString = query;
 			char delim=serviceURL.indexOf('?')==-1?'?':'&';
 			if(queryType==Query.UPDATE_TYPE)
 				urlString = serviceURL;
@@ -85,8 +87,9 @@ public class NetQuery {
 			start = System.nanoTime();
 			int rc = conn.getResponseCode();
 			if(rc < 200 || rc >= 300) {
-				System.err.println("Query execution: Received error code " + rc + " from server for Query:\n");
-				System.err.println(URLDecoder.decode(conn.getURL().getQuery(),"UTF-8"));
+				System.err.println("Query execution: Received error code " + rc + " from server");
+				System.err.println("Error message: " + conn.getResponseMessage() + "\n\nFor query: \n");
+				System.err.println(queryString + "\n");
 			}
 			return conn.getInputStream();
 		} catch(SocketTimeoutException e) {
