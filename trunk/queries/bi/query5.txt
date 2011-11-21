@@ -19,7 +19,7 @@
       }
       Group By ?country
     }
-    { Select ?product (avg(xsd:float(xsd:string(?price))) As ?avgPrice)
+    { Select ?product (avg(xsd:float(str(?price))) As ?avgPrice)
       {
         ?product a %ProductType% .
         ?offer bsbm:product ?product .

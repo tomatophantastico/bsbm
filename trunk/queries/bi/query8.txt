@@ -10,7 +10,7 @@
           ?offer bsbm:product ?product .
           ?offer bsbm:vendor ?vendor .
           ?offer bsbm:price ?price .
-          { Select ?product (avg(xsd:float(xsd:string(?price))) As ?avgPrice)
+          { Select ?product (avg(xsd:float(str(?price))) As ?avgPrice)
             {
               ?product a %ProductType% .
               ?offer bsbm:product ?product .
@@ -20,7 +20,7 @@
             Group By ?product
           }
         } .
-        FILTER (xsd:float(xsd:string(?price)) < ?avgPrice)
+        FILTER (xsd:float(str(?price)) < ?avgPrice)
       }
       Group By ?vendor
     }
