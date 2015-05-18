@@ -33,6 +33,11 @@ dependencies {
     compile('ca.umontreal.iro:ssj:2.5'){transitive = false}
     compile 'org.jdom:jdom:1.1.3'
     compile 'log4j:log4j:1.2.17'
+    compile 'ch.qos.logback:logback-classic:1.1.3'
+    compile 'commons-cli:commons-cli:1.2'
+    compile 'org.openrdf.sesame:sesame-rio-trig:2.8.1'
+    compile 'org.openrdf.sesame:sesame-rio-nquads:2.8.1'
+    compile 'com.google.guava:guava:18.0'
 
 
 
