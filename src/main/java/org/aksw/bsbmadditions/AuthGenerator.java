@@ -78,7 +78,7 @@ public class AuthGenerator {
       "dn: ou=people,dc=example,dc=com\n" + 
       "objectclass: top\n" + 
       "objectclass: organizationalUnit\n" + 
-      "ou: people";
+      "ou: people\n\n";
 
 
 
@@ -196,6 +196,7 @@ public class AuthGenerator {
     BufferedWriter userList =  Files.newWriter(new File("./users.list"), com.google.common.base.Charsets.UTF_8);
     
     auth_ntrig.write(AUTH_FILE_PREFIX);
+    ldif.write(LDIF_PREFIX);
     //write them to disk;
     writeAccessCondition(admins, auth_ntrig);
     
