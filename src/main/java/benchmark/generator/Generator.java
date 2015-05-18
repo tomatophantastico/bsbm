@@ -22,6 +22,7 @@ import benchmark.serializer.*;
 import java.util.*;
 
 import benchmark.vocabulary.*;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -95,7 +96,7 @@ public class Generator {
 				System.exit(-1);
 			}
 			nrOfMinProductNrForUpdate = productCount - nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset + 1;
-			updateDatasetSerializer = new NTriples(updateDatasetFileName, forwardChaining);
+			updateDatasetSerializer = new NTriples(updateDatasetFileName,".nt", forwardChaining);
 			updateResourceData = new ArrayList<List<BSBMResource>>();
 			for(int i = 0; i<nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset; i++)
 				updateResourceData.add(new ArrayList<BSBMResource>());
@@ -140,10 +141,14 @@ public class Generator {
 	private static Serializer getSerializer(String type) {
 		String t = type.toLowerCase();
 		if(t.equals("nt"))
-			return new NTriples(outputFileName, forwardChaining, nrOfOutputFiles);
+			return new NTriples( outputFileName, ".nt", forwardChaining, nrOfOutputFiles);
 		else if(t.equals("trig"))
 			return new TriG(outputFileName + ".trig", forwardChaining);
-		else if(t.equals("ttl"))
+		else if(t.equals("nqr"))
+      return new NQuadByResource(outputFileName, ".nq", forwardChaining);
+    else if(t.equals("nqp"))
+      return new NQuadReview(outputFileName, ".nq", forwardChaining);
+    else if(t.equals("ttl"))
 			return new Turtle(outputFileName, forwardChaining, nrOfOutputFiles);
 		else if(t.equals("xml"))
 			return new XMLSerializer(outputFileName + ".xml", forwardChaining);

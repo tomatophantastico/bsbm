@@ -10,8 +10,10 @@ public class ClientThread extends Thread {
 	private boolean finishedWarmup;
 	private int maxQuery;
 	private int nr;
+  private UserPassPool upp;
 	
-	ClientThread(PreCalcParameterPool pool, ServerConnection conn, int maxQuery, ClientManager parent, int clientNr) {
+	ClientThread(PreCalcParameterPool pool, ServerConnection conn, int maxQuery, ClientManager parent, int clientNr, UserPassPool upp) {
+	  this.upp = upp;
 		this.pool = pool;
 		this.conn = conn;
 		this.maxQuery = maxQuery;
@@ -23,6 +25,10 @@ public class ClientThread extends Thread {
 	@Override
     public void run() {
 		queryMix = new CompiledQueryMix(maxQuery);
+		if(upp!=null){
+	    queryMix.userpass = upp.getNextUserpass();
+
+		}
 		while(!Thread.interrupted()) {
 			boolean inWarmup;
 			boolean inRun;

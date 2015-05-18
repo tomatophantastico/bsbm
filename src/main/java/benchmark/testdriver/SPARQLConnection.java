@@ -51,9 +51,9 @@ public class SPARQLConnection implements ServerConnection{
 
 		NetQuery qe;
 		if(queryType==Query.UPDATE_TYPE)
-			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 		else
-			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 		int queryMixRun = queryMix.getRun() + 1;
 
 		InputStream is = qe.exec();
@@ -100,9 +100,9 @@ public class SPARQLConnection implements ServerConnection{
 		
 		NetQuery qe;
 		if(query.getQueryType()==Query.UPDATE_TYPE)
-			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 		else
-			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 
 		int queryMixRun = queryMix.getRun() + 1;
 
@@ -233,7 +233,7 @@ private int countBytes(InputStream is) {
 
 	/*
 	 * (non-Javadoc)
-	 * @see benchmark.testdriver.ServerConnection#executeValidation(benchmark.testdriver.Query, byte, java.lang.String[])
+	 * @see benchmark.testdriver.ServerConnection#executeValidation(benchmark.testdriver.Query, byte, java.lang.String[], String userpass)
 	 * Gather information about the result a query returns.
 	 */
 	public QueryResult executeValidation(Query query, byte queryType) {
@@ -245,9 +245,9 @@ private int countBytes(InputStream is) {
 
 		NetQuery qe;
 		if(queryType==Query.UPDATE_TYPE)
-			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, 0);
+			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, 0,query.getQueryMix().userpass);
 		else
-			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, 0);
+			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, 0,query.getQueryMix().userpass);
 
 		InputStream is = qe.exec();
 		

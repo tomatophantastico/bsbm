@@ -22,6 +22,7 @@ public class CompiledQueryMix {
 	private double maxQueryMixRuntime;
 	private double queryMixGeoMean;
 	private double totalRuntime;//Total runtime of all runs
+  public String userpass;
 	
 	/*
 	 * Initialize the CompileQueryMix with CompiledQueries and a max query number for array sizes

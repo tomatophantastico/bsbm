@@ -5,13 +5,14 @@ import java.io.UnsupportedEncodingException;
 import java.net.*;
 import java.io.*;
 
+
 public class NetQuery {
 	HttpURLConnection conn;
 	Long start;
 	Long end;
 	String queryString;
 	
-	protected NetQuery(String serviceURL, String query, byte queryType, String defaultGraph, int timeout) {
+	protected NetQuery(String serviceURL, String query, byte queryType, String defaultGraph, int timeout, String userpass) {
 		String urlString = null;
 		try {
 			queryString = query;
@@ -29,6 +30,12 @@ public class NetQuery {
 			conn = (HttpURLConnection)url.openConnection();
 
 			configureConnection(query, queryType, timeout, defaultGraph);
+			
+			if(userpass!=null){
+			  String basicAuth = "Basic " + javax.xml.bind.DatatypeConverter.printBase64Binary(userpass.getBytes());
+			  conn.setRequestProperty ("Authorization", basicAuth);
+			}
+			
 		} catch(UnsupportedEncodingException e) {
 			System.err.println(e.toString());
 			e.printStackTrace();

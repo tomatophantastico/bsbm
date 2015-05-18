@@ -102,6 +102,7 @@ public class TestDriver {
 																	// are
 																	// compared
 	protected boolean rampup = false;
+  protected UserPassPool userpasspool;
 
 	public TestDriver(String[] args) {
 		processProgramParameters(args);
@@ -282,6 +283,10 @@ public class TestDriver {
 		queryRun = setupQueryRun(maxQueryPerRun, queryRuns);
 
 		queryMix = new QueryMix(queries, queryRun);
+		if(userpasspool!=null){
+	    queryMix.userpass = userpasspool.getNextUserpass();
+
+		}
 	}
 
 	/*
@@ -777,6 +782,8 @@ public class TestDriver {
 					sparqlUpdateQueryParameter = args[i++ + 1];
 				} else if (!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
+				} else if(args[i].equals("-upf")){
+				  userpasspool = new UserPassPool(new File(args[i++ + 1]));
 				} else {
 					if (!args[i].equals("-help"))
 						System.err.println("Unknown parameter: " + args[i]);

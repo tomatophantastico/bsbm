@@ -23,6 +23,7 @@ public class QueryMix {
 	private double queryMixGeoMean;
 	private double totalRuntime;//Total runtime of all runs
 	private double multiThreadRuntime;//ClientManager sets this value after the runs
+  public String userpass;
 	
 	public double getMultiThreadRuntime() {
 		return multiThreadRuntime;
