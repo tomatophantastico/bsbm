@@ -62,11 +62,11 @@ public class AuthGenerator {
       "@prefix owl: <http://www.w3.org/2002/07/owl#> .\n" + 
       "@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .\n" + 
       "@prefix foaf: <http://xmlns.com/foaf/0.1/> .\n" + 
-      "@prefix : <http://localhost/auth-context/> . \n" +
-      ":graph { \n";
-  
+      "@prefix : <http://localhost/auth-context/> . \n" 
+      //+ ":graph { \n";
+      ;
  
-  public static String AUTH_FILE_SUFFIX = "}";
+  public static String AUTH_FILE_SUFFIX = "";// "}";
   
   
   
@@ -191,7 +191,7 @@ public class AuthGenerator {
     
     
     //open the files
-    BufferedWriter auth_ntrig =  Files.newWriter(new File("./auth.trig"), Charsets.UTF_8);
+    BufferedWriter auth_ntrig =  Files.newWriter(new File("./auth.ttl"), Charsets.UTF_8);
     BufferedWriter ldif =  Files.newWriter(new File("./auth.ldif"), Charsets.UTF_8);
     BufferedWriter userList =  Files.newWriter(new File("./users.list"), com.google.common.base.Charsets.UTF_8);
     
