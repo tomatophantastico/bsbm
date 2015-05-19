@@ -85,7 +85,7 @@ public class SPARQLConnection implements ServerConnection{
 		if(logger.isEnabledFor( Level.ALL ) && queryMixRun > 0)
 			logResultInfo(queryNr, queryMixRun, timeInSeconds,
 	                   queryString, queryType,
-	                   resultCount);
+	                   resultCount,null);
 		
 		queryMix.setCurrent(resultCount, timeInSeconds);
 		qe.close();
@@ -139,7 +139,7 @@ public class SPARQLConnection implements ServerConnection{
 		if(logger.isEnabledFor( Level.ALL ) && queryMixRun > 0)
 			logResultInfo(queryNr, queryMixRun, timeInSeconds,
 	                   queryString, queryType,
-	                   resultCount);
+	                   resultCount,queryMix.userpass);
 		
 		queryMix.setCurrent(resultCount, timeInSeconds);
 		qe.close();
@@ -168,14 +168,17 @@ private int countBytes(InputStream is) {
 	
 	private void logResultInfo(int queryNr, int queryMixRun, double timeInSeconds,
 			                   String queryString, byte queryType,
-			                   int resultCount) {
+			                   int resultCount, String userpass) {
 		StringBuffer sb = new StringBuffer(1000);
 		sb.append("\n\n\tQuery " + queryNr + " of run " + queryMixRun + " has been executed ");
 		sb.append("in " + String.format("%.6f",timeInSeconds) + " seconds.\n" );
 		sb.append("\n\tQuery string:\n\n");
 		sb.append(queryString);
 		sb.append("\n\n");
-	
+		if(userpass!=null){
+		  sb.append("user: " + userpass);
+		  sb.append("\n\n");
+		}
 		//Log results
 		if(queryType==Query.DESCRIBE_TYPE)
 			sb.append("\tQuery(Describe) result (" + resultCount + " Bytes): \n\n");
