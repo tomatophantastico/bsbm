@@ -18,7 +18,7 @@ public class UserPassPool {
   }
   
   public String getNextUserpass(){
-    if(upi == null && !upi.hasNext()){
+    if(upi == null || !upi.hasNext()){
       upi = userpasses.iterator();
       if(!upi.hasNext()){
         System.exit(0);
