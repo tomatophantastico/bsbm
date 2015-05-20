@@ -503,7 +503,7 @@ public class TriG implements Serializer {
 				createLiteral(pf.getLabel())));
 		
 		//rdfs:comment
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				RDFS.prefixed("comment"),
 				createLiteral(pf.getComment())));
 		
