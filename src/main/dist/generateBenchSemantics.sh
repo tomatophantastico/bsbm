@@ -8,13 +8,13 @@ do
 		mkdir -p $DIR
 		./generate -pc $PC -s $SER 
 		if [ $SER = "trig" ]; then
-			./generateAuth -fn dataset.nq -uc 50 -gc 10
-			gzip dataset.trig
+			./generateAuth -fn dataset.trig -uc 50 -gc 10
+			pigz dataset.trig
 		elif [ $SER = "nqr" ] || [ $SER = "nqp" ]; then
 			./generateAuth -fn dataset.nq -uc 50 -gc 10
-			gzip dataset.nq
+			pigz dataset.nq
 		else
-			gzip dataset.ttl
+			pigz dataset.ttl
 		fi	
 		
 		mv dataset* $DIR 
