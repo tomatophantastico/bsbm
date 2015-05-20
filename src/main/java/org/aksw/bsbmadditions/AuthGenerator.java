@@ -40,6 +40,7 @@ import org.openrdf.rio.nquads.NQuadsWriterFactory;
 import org.openrdf.rio.trig.TriGParser;
 import org.openrdf.rio.trig.TriGParserFactory;
 
+import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -196,8 +197,12 @@ public class AuthGenerator {
     BufferedWriter userList =  Files.newWriter(new File("./users.list"), com.google.common.base.Charsets.UTF_8);
     BufferedWriter userGraphCount = Files.newWriter(new File("./users_graph_count.list"), com.google.common.base.Charsets.UTF_8);
     BufferedWriter groupGraphCount = Files.newWriter(new File("./groups_graph_count.list"), com.google.common.base.Charsets.UTF_8);
+    BufferedWriter auth_session = Files.newWriter(new File("./auth_session.ttl"), com.google.common.base.Charsets.UTF_8);
+    BufferedWriter auth_session_materialized = Files.newWriter(new File("./auth_session_mat.ttl"), com.google.common.base.Charsets.UTF_8);
 
     auth_ntrig.write(AUTH_FILE_PREFIX);
+    auth_session.write(AUTH_FILE_PREFIX);
+    auth_session_materialized.write(AUTH_FILE_PREFIX);
     ldif.write(LDIF_PREFIX);
     //write them to disk;
     writeAccessCondition(admins, auth_ntrig);
@@ -214,6 +219,9 @@ public class AuthGenerator {
     writerUserGRaphCount(users,userGraphCount);
     writerGRoupGRaphCount(groups, groupGraphCount);
     
+    writeSessionData(users,auth_session);
+    writeSessionMat(users,auth_session_materialized);
+    
     // close
     auth_ntrig.write(AUTH_FILE_SUFFIX);
     auth_ntrig.close();
@@ -221,6 +229,8 @@ public class AuthGenerator {
     userList.close();
     userGraphCount.close();
     groupGraphCount.close();
+    auth_session.close();
+    auth_session_materialized.close();
         
  
   }
@@ -229,6 +239,42 @@ public class AuthGenerator {
   
   
   
+  private void writeSessionMat(List<User> users,
+      BufferedWriter out) throws IOException {
+    for(User user: users){
+      for(Group group: user.groups){
+        for(String graph : group.graphs){
+          out.write(String.format(":%1$s auth:readGraph <%2$s>.\n", user.name, graph));
+        }
+      }
+    }
+  }
+
+
+
+
+
+  private void writeSessionData(List<User> users, BufferedWriter out) throws IOException {
+    for(User user: users){
+    
+      out.write(String.format(":%1$s a auth:Account ;\n" + 
+          "    auth:login \"%1$s\";\n"  , user.name));
+      if(user.groups!=null&& user.groups.size()>0){
+        List<String> groupnames = Lists.transform(user.groups, Functions.toStringFunction());
+        out.write(String.format("    auth:memberOf :%s ;\n", Joiner.on(", :").join(groupnames)));
+      }
+      out.write(String.format(".\n :Session%1$s a auth:Session ;\n" + 
+          "    auth:openedBy :%1$s . \n\n",user.name));
+      
+     
+    }
+    
+  }
+
+
+
+
+
   private void writerUserGRaphCount(List<User> users,
       BufferedWriter userGraphCount) throws IOException {
     for(User user: users){
@@ -263,6 +309,11 @@ public class AuthGenerator {
     String name;
     Set<String> graphs = new HashSet<String>();
     List<User> users = Lists.newArrayList();
+    
+    @Override
+    public String toString() {
+      return name;
+    }
     
     
   }
