@@ -36,6 +36,7 @@ import org.slf4j.LoggerFactory;
 import com.google.common.base.Functions;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Ordering;
+import com.google.common.collect.TreeMultimap;
 import com.google.common.io.Files;
 
 public class  AuthCli  {
@@ -126,26 +127,34 @@ public class  AuthCli  {
     parser.parse(new FileInputStream(fileNameString), "http://localhost/");
     
     
-    Comparator<String> comparator = Ordering.natural().reverse().onResultOf(Functions.forMap(graphs));
-    TreeMap<String,Integer> sortedMap = Maps.newTreeMap(comparator);
-    sortedMap.putAll(graphs);
+    TreeMultimap<Integer, String> sortedGraphs = TreeMultimap.create(); 
+    
+    
+    
+    
+    
+    
+    for(String graph: graphs.keySet()){
+      sortedGraphs.put(graphs.get(graph),graph);
+    }
     
     
     BufferedWriter gtc = Files.newWriter(new File(fileNameString + "_graph_triple_count.txt"), Charset.defaultCharset());
     
-    for(String graph: sortedMap.navigableKeySet()){
-      gtc.write(graph + "\t" + sortedMap.get(graph)  + "\n");
+    for(Integer count: sortedGraphs.keySet()){
+      for(String graph: sortedGraphs.get(count)){
+        gtc.write(graph + "\t" + count  + "\n");
+
+      }
     }
     
-    gtc.flush();
     gtc.close();
     
     BufferedWriter tc = Files.newWriter(new File(fileNameString + "_triple_count.txt"), Charset.defaultCharset());
-    tc.write("stmntscount: " + stmntcount.get());
-    tc.flush();
+    tc.write("stmntscount: " + " \t " +stmntcount.get());
     tc.close();
     
-    return new ArrayList<String>(sortedMap.navigableKeySet());
+    return new ArrayList<String>(graphs.keySet());
   }
 
 }

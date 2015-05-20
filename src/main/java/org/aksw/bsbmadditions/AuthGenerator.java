@@ -176,8 +176,8 @@ public class AuthGenerator {
         all.users.add(otheruser);
       }
       
-      //add 0-4 groups to a user
-      int groupCount = new Random().nextInt(4);
+      //add 2-6 groups to a user
+      int groupCount = new Random().nextInt(4) + 2;
       for(int j = 0;j<groupCount;j++){
         int randomGroupInt = new Random().nextInt(groups.size());
         Group randomGroup = groups.get(randomGroupInt);
@@ -194,11 +194,14 @@ public class AuthGenerator {
     BufferedWriter auth_ntrig =  Files.newWriter(new File("./auth.ttl"), Charsets.UTF_8);
     BufferedWriter ldif =  Files.newWriter(new File("./auth.ldif"), Charsets.UTF_8);
     BufferedWriter userList =  Files.newWriter(new File("./users.list"), com.google.common.base.Charsets.UTF_8);
-    
+    BufferedWriter userGraphCount = Files.newWriter(new File("./users_graph_count.list"), com.google.common.base.Charsets.UTF_8);
+    BufferedWriter groupGraphCount = Files.newWriter(new File("./groups_graph_count.list"), com.google.common.base.Charsets.UTF_8);
+
     auth_ntrig.write(AUTH_FILE_PREFIX);
     ldif.write(LDIF_PREFIX);
     //write them to disk;
     writeAccessCondition(admins, auth_ntrig);
+    writeGroupLdif(admins, ldif);
     
     for(Group group : groups){
       writeAccessCondition(group, auth_ntrig);
@@ -208,14 +211,16 @@ public class AuthGenerator {
     
     writeUserList(users,userList);
     writeUsersLdif(users, ldif);
+    writerUserGRaphCount(users,userGraphCount);
+    writerGRoupGRaphCount(groups, groupGraphCount);
     
     // close
     auth_ntrig.write(AUTH_FILE_SUFFIX);
     auth_ntrig.close();
-    
     ldif.close();
     userList.close();
-    
+    userGraphCount.close();
+    groupGraphCount.close();
         
  
   }
@@ -224,6 +229,30 @@ public class AuthGenerator {
   
   
   
+  private void writerUserGRaphCount(List<User> users,
+      BufferedWriter userGraphCount) throws IOException {
+    for(User user: users){
+      Set<String> graphs= Sets.newHashSet();
+      for(Group group: user.groups){
+        graphs.addAll(group.graphs);
+      }
+      userGraphCount.write(String.format("%s \t %d \n", user.name, graphs.size()));
+    }
+    
+  }
+  
+  private void writerGRoupGRaphCount(List<Group> groups,
+      BufferedWriter out) throws IOException {
+    for(Group  group: groups){
+      out.write(String.format("%s \t %d \n", group.name, group.graphs.size()));
+    }
+    
+  }
+
+
+
+
+
   public static class User{
     String name;
     List<Group> groups = Lists.newArrayList();
@@ -293,5 +322,6 @@ public class AuthGenerator {
     }
     
   }
+  
   
 }
