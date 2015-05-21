@@ -10,9 +10,11 @@ do
 		if [ $SER = "trig" ]; then
 			./generateAuth -fn dataset.trig -uc 50 -gc 10
 			pigz dataset.trig
+			pigz auth_session_mat.ttl
 		elif [ $SER = "nqr" ] || [ $SER = "nqp" ]; then
 			./generateAuth -fn dataset.nq -uc 50 -gc 10
 			pigz dataset.nq
+			pigz auth_session_mat.ttl
 		else
 			pigz dataset.ttl
 		fi	
