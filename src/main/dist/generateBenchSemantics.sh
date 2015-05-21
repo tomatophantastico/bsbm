@@ -1,6 +1,6 @@
 #!/bin/bash
 
-for PC in 2848 28480 284800
+for PC in 284800 28480 2848
 do
 	for SER in nqr nqp trig ttl
 	do
@@ -10,11 +10,9 @@ do
 		if [ $SER = "trig" ]; then
 			./generateAuth -fn dataset.trig -uc 50 -gc 10
 			pigz dataset.trig
-			pigz auth_session_mat.ttl
 		elif [ $SER = "nqr" ] || [ $SER = "nqp" ]; then
 			./generateAuth -fn dataset.nq -uc 50 -gc 10
 			pigz dataset.nq
-			pigz auth_session_mat.ttl
 		else
 			pigz dataset.ttl
 		fi	

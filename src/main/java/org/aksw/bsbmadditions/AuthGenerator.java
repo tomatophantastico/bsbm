@@ -4,8 +4,10 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
+import java.util.zip.GZIPOutputStream;
 
 import org.apache.commons.io.Charsets;
 import org.openrdf.model.Resource;
@@ -205,7 +208,9 @@ public class AuthGenerator {
     BufferedWriter userGraphCount = Files.newWriter(new File("./users_graph_count.list"), com.google.common.base.Charsets.UTF_8);
     BufferedWriter groupGraphCount = Files.newWriter(new File("./groups_graph_count.list"), com.google.common.base.Charsets.UTF_8);
     BufferedWriter auth_session = Files.newWriter(new File("./auth_session.ttl"), com.google.common.base.Charsets.UTF_8);
-    BufferedWriter auth_session_materialized = Files.newWriter(new File("./auth_session_mat.ttl"), com.google.common.base.Charsets.UTF_8);
+    
+    GZIPOutputStream zip = new GZIPOutputStream(new FileOutputStream(new File("./auth_session_mat.ttl.gzip")));
+    BufferedWriter auth_session_materialized = new BufferedWriter(new OutputStreamWriter(zip, "UTF-8"));
 
     auth_ntrig.write(AUTH_FILE_PREFIX);
     auth_session.write(AUTH_FILE_PREFIX);
