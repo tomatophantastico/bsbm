@@ -123,6 +123,7 @@ public class  AuthCli  {
       System.exit(0);
     }
     
+    log.info("Start reading file: " + fileNameString);
     parser.setRDFHandler(rdfh);
     parser.parse(new FileInputStream(fileNameString), "http://localhost/");
     
