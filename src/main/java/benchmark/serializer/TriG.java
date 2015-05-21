@@ -276,7 +276,7 @@ public class TriG implements Serializer {
 				createDataTypeLiteral(offer.getDeliveryDays().toString(), XSD.prefixed("integer"))));
 		
 		//bsbm:offerWebpage
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("offerWebpage"),
 				createURIref(offer.getOfferWebpage())));
 		
@@ -407,7 +407,7 @@ public class TriG implements Serializer {
 				createLiteral(person.getMbox_sha1sum())));
 		
 		//bsbm:country
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("country"),
 				createURIref(ISO3166.find(person.getCountryCode()))));
 		
@@ -460,7 +460,7 @@ public class TriG implements Serializer {
 				createURIref(producer.getHomepage())));
 		
 		//bsbm:country
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("country"),
 				createURIref(ISO3166.find(producer.getCountryCode()))));
 		
@@ -557,7 +557,7 @@ public class TriG implements Serializer {
 				createURIref(vendor.getHomepage())));
 		
 		//bsbm:country
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("country"),
 				createURIref(ISO3166.find(vendor.getCountryCode()))));	
 		
@@ -631,7 +631,7 @@ public class TriG implements Serializer {
 		GregorianCalendar reviewDate = new GregorianCalendar();
 		reviewDate.setTimeInMillis(review.getReviewDate());
 		String reviewDateString = DateGenerator.formatDateTime(reviewDate);
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("reviewDate"),
 				createDataTypeLiteral(reviewDateString, XSD.prefixed("dateTime"))));
 		
