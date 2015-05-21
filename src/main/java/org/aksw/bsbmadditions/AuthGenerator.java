@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -39,6 +40,8 @@ import org.openrdf.rio.nquads.NQuadsWriter;
 import org.openrdf.rio.nquads.NQuadsWriterFactory;
 import org.openrdf.rio.trig.TriGParser;
 import org.openrdf.rio.trig.TriGParserFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
@@ -51,6 +54,8 @@ import com.google.common.io.Files;
 
 public class AuthGenerator {
 
+  
+  private static Logger log = LoggerFactory.getLogger(AuthGenerator.class);
 
   public static final String BACKGROUND_GRAPH = "http://www4.wiwiss.fu-berlin.de/bizer/bsbm/v01/BackgroundGraph";
   
@@ -103,6 +108,8 @@ public class AuthGenerator {
    * @throws IOException 
    */
   public void generate(List<String> graphs) throws RDFHandlerException, IOException{
+    
+   log.info("GRaph count is: " + graphs.size() );
     
     // make a mutable copy first
     graphs = new ArrayList<String>(graphs);
@@ -189,7 +196,7 @@ public class AuthGenerator {
       users.add(otheruser);
     }
     
-    
+    log.info("Generated users and groups");
     
     //open the files
     BufferedWriter auth_ntrig =  Files.newWriter(new File("./auth.ttl"), Charsets.UTF_8);
@@ -231,7 +238,7 @@ public class AuthGenerator {
     groupGraphCount.close();
     auth_session.close();
     auth_session_materialized.close();
-        
+    log.info("finished writing groups and users");
  
   }
 
@@ -322,7 +329,14 @@ public class AuthGenerator {
     out.write(String.format("   :%1$sAccessCondition a auth:AccessCondition ;\n" + 
         "    auth:requiresGroup :%1$s ;\n", group.name)); 
     if(!(group.graphs == null || group.graphs.isEmpty() )){
-      out.write(String.format("    auth:readGraph <%1$s> \n", Joiner.on(">, <").join(group.graphs)));
+      
+      //no joiners here, as too memory costly
+      Iterator<String> gi = group.graphs.iterator();
+      out.write(String.format("auth:readGraph   <%s>",gi.next()));
+      
+      while(gi.hasNext()){
+        out.write(String.format(", <%s>",gi.next()));
+      }
         
     }
     out.write(". \n");   
