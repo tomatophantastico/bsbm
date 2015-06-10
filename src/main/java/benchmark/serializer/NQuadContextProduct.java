@@ -9,16 +9,16 @@ import benchmark.model.Review;
  * @author joerg
  *
  */
-public class NQuadReview extends NTriples implements Serializer {
+public class NQuadContextProduct extends NTriples implements Serializer {
 
-  public NQuadReview(String file,String filesuffix, boolean forwardChaining) {
+  public NQuadContextProduct(String file,String filesuffix, boolean forwardChaining) {
     super(file,filesuffix, forwardChaining);
   }
   
   @Override
-  protected String convertReview(Review review) {
-    String orig =  super.convertReview(review);
-    String replaced = replaceBackgroundGraph(orig, "/review/" + review.getNr());
+  protected String convertProduct(Product product) {
+    String orig =  super.convertProduct(product);
+    String replaced = replaceBackgroundGraph(orig, "product/" + product.getNr());
     return replaced;
   }
   
