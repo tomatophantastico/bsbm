@@ -489,7 +489,16 @@ public class TestDriver {
 		for (int nrRun = -warmups; nrRun < nrRuns; nrRun++) {
 			long startTime = System.currentTimeMillis();
 			queryMix.setRun(nrRun);
+			if(userpasspool!=null){
+			  queryMix.userpass = userpasspool.getNextUserpass();
+			}
 			while (queryMix.hasNext()) {
+			  //on warumps, iterate through users on every query
+			  
+			  if (nrRun < 0 && userpasspool != null) {
+			    queryMix.userpass = userpasspool.getNextUserpass();
+        }
+			  
 				Query next = queryMix.getNext();
 
 				// Don't run update queries on warm-up
@@ -536,7 +545,7 @@ public class TestDriver {
 					+ (System.currentTimeMillis() - startTime) + "ms");
 			queryMix.finishRun();
 		}
-		logger.log(Level.ALL, printResults(true));
+		logger.log(Level.INFO, printResults(true));
 
 		try {
 			FileWriter resultWriter = new FileWriter(xmlResultFile);
@@ -720,7 +729,7 @@ public class TestDriver {
 		manager.createClients();
 		manager.startWarmup();
 		manager.startRun();
-		logger.log(Level.ALL, printResults(true));
+		logger.log(Level.INFO, printResults(true));
 		try {
 			FileWriter resultWriter = new FileWriter(xmlResultFile);
 			resultWriter.append(printXMLResults(true));

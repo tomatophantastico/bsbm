@@ -82,10 +82,10 @@ public class SPARQLConnection implements ServerConnection{
 		}
 		timeInSeconds = qe.getExecutionTimeInSeconds();
 
-		if(logger.isEnabledFor( Level.ALL ) && queryMixRun > 0)
+		if(logger.isEnabledFor( Level.INFO ) && queryMixRun > 0)
 			logResultInfo(queryNr, queryMixRun, timeInSeconds,
 	                   queryString, queryType,
-	                   resultCount,null);
+	                   resultCount,queryMix.userpass);
 		
 		queryMix.setCurrent(resultCount, timeInSeconds);
 		qe.close();
@@ -136,7 +136,7 @@ public class SPARQLConnection implements ServerConnection{
 			return;
 		}
 
-		if(logger.isEnabledFor( Level.ALL ) && queryMixRun > 0)
+		if(logger.isEnabledFor( Level.INFO ) && queryMixRun > 0)
 			logResultInfo(queryNr, queryMixRun, timeInSeconds,
 	                   queryString, queryType,
 	                   resultCount,queryMix.userpass);
@@ -189,7 +189,7 @@ private int countBytes(InputStream is) {
 		
 
 		sb.append("\n__________________________________________________________________________________\n");
-		logger.log(Level.ALL, sb.toString());
+		logger.log(Level.INFO, sb.toString());
 	}
 	
 	private int countResults(InputStream s) throws SocketTimeoutException {
@@ -279,7 +279,7 @@ private int countBytes(InputStream is) {
 		sb.append("\n\n\tResult:\n\n");
 		sb.append(queryResult);
 		sb.append("\n\n__________________________________________________________________________________\n");
-		logger.log(Level.ALL, sb.toString());
+		logger.log(Level.INFO, sb.toString());
 	}
 	
 	private Document getXMLDocument(InputStream is) {
