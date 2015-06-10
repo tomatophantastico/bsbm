@@ -147,7 +147,7 @@ public class Generator {
 		else if(t.equals("nqr"))
       return new NQuadByResource(outputFileName, ".nq", forwardChaining);
     else if(t.equals("nqp"))
-      return new NQuadReview(outputFileName, ".nq", forwardChaining);
+      return new NQuadContextProduct(outputFileName, ".nq", forwardChaining);
     else if(t.equals("ttl"))
 			return new Turtle(outputFileName, forwardChaining, nrOfOutputFiles);
 		else if(t.equals("xml"))
