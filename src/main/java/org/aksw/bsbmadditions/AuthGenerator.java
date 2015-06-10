@@ -2,46 +2,19 @@ package org.aksw.bsbmadditions;
 
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStreamWriter;
-import java.io.Reader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Random;
 import java.util.Set;
-import java.util.TreeMap;
-import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.zip.GZIPOutputStream;
 
-import org.openrdf.model.Resource;
-import org.openrdf.model.Statement;
-import org.openrdf.model.ValueFactory;
-import org.openrdf.model.impl.ContextStatementImpl;
-import org.openrdf.model.impl.URIImpl;
-import org.openrdf.model.impl.ValueFactoryImpl;
-import org.openrdf.rio.RDFFormat;
-import org.openrdf.rio.RDFHandler;
 import org.openrdf.rio.RDFHandlerException;
-import org.openrdf.rio.RDFParseException;
-import org.openrdf.rio.RDFParser;
-import org.openrdf.rio.RDFWriter;
-import org.openrdf.rio.helpers.RDFHandlerBase;
-import org.openrdf.rio.helpers.RDFParserBase;
-import org.openrdf.rio.nquads.NQuadsParserFactory;
-import org.openrdf.rio.nquads.NQuadsWriter;
-import org.openrdf.rio.nquads.NQuadsWriterFactory;
-import org.openrdf.rio.trig.TriGParser;
-import org.openrdf.rio.trig.TriGParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,12 +23,8 @@ import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
-import com.google.common.io.CharSink;
-import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
-import com.sun.xml.internal.bind.v2.runtime.Name;
 
 public class AuthGenerator {
 
@@ -347,7 +316,7 @@ public class AuthGenerator {
       }
       userGraphCount.write(String.format("%s \t %d \n", user.name, graphs.size()));
     }
-    userGraphCount.write("Average visible graphs per user: " + (double)((double)sumVisibl)/((double)usercount));
+    userGraphCount.write("Average visible graphs per user: " + (sumVisibl)/(usercount));
     
   }
   
