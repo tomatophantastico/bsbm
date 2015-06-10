@@ -23,7 +23,6 @@ import java.util.TreeMap;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.zip.GZIPOutputStream;
 
-import org.apache.commons.io.Charsets;
 import org.openrdf.model.Resource;
 import org.openrdf.model.Statement;
 import org.openrdf.model.ValueFactory;
@@ -46,14 +45,17 @@ import org.openrdf.rio.trig.TriGParserFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.base.Charsets;
 import com.google.common.base.Functions;
 import com.google.common.base.Joiner;
+import com.google.common.collect.Iterators;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.common.io.CharSink;
 import com.google.common.io.FileWriteMode;
 import com.google.common.io.Files;
+import com.sun.xml.internal.bind.v2.runtime.Name;
 
 public class AuthGenerator {
 
@@ -76,6 +78,9 @@ public class AuthGenerator {
       ;
  
   public static String AUTH_FILE_SUFFIX = "";// "}";
+  
+  public static String VIRT_SEC_PREFIX = "DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('nobody', 0); \n"
+      + "";
   
   
   
@@ -187,8 +192,8 @@ public class AuthGenerator {
         all.users.add(otheruser);
       }
       
-      //add 2-6 groups to a user
-      int groupCount = new Random().nextInt(4) + 2;
+      //add 5-9 groups to a user
+      int groupCount = new Random().nextInt(4) + 5;
       for(int j = 0;j<groupCount;j++){
         int randomGroupInt = new Random().nextInt(groups.size());
         Group randomGroup = groups.get(randomGroupInt);
@@ -208,13 +213,16 @@ public class AuthGenerator {
     BufferedWriter userGraphCount = Files.newWriter(new File("./users_graph_count.list"), com.google.common.base.Charsets.UTF_8);
     BufferedWriter groupGraphCount = Files.newWriter(new File("./groups_graph_count.list"), com.google.common.base.Charsets.UTF_8);
     BufferedWriter auth_session = Files.newWriter(new File("./auth_session.ttl"), com.google.common.base.Charsets.UTF_8);
-    
+    BufferedWriter virtuoso_auth = Files.newWriter(new File("./virt_auth.isql"), com.google.common.base.Charsets.UTF_8);
+
     GZIPOutputStream zip = new GZIPOutputStream(new FileOutputStream(new File("./auth_session_mat.ttl.gzip")));
     BufferedWriter auth_session_materialized = new BufferedWriter(new OutputStreamWriter(zip, "UTF-8"));
 
     auth_ntrig.write(AUTH_FILE_PREFIX);
     auth_session.write(AUTH_FILE_PREFIX);
     auth_session_materialized.write(AUTH_FILE_PREFIX);
+    virtuoso_auth.write(VIRT_SEC_PREFIX);
+    
     ldif.write(LDIF_PREFIX);
     //write them to disk;
     writeAccessCondition(admins, auth_ntrig);
@@ -233,7 +241,7 @@ public class AuthGenerator {
     
     writeSessionData(users,auth_session);
     writeSessionMat(users,auth_session_materialized);
-    
+    writeVirtuosoACL(users, virtuoso_auth);
     // close
     auth_ntrig.write(AUTH_FILE_SUFFIX);
     auth_ntrig.close();
@@ -243,6 +251,7 @@ public class AuthGenerator {
     groupGraphCount.close();
     auth_session.close();
     auth_session_materialized.close();
+    virtuoso_auth.close();
     log.info("finished writing groups and users");
  
   }
@@ -254,11 +263,46 @@ public class AuthGenerator {
   private void writeSessionMat(List<User> users,
       BufferedWriter out) throws IOException {
     for(User user: users){
-      for(Group group: user.groups){
-        for(String graph : group.graphs){
+        Set<String> graphs = new HashSet<String>();
+        for(Group group: user.groups){
+          graphs.addAll(group.graphs);
+        }
+        for(String graph : graphs){
           out.write(String.format(":%1$s auth:readGraph <%2$s>.\n", user.name, graph));
         }
+      
+    }
+  }
+  
+  
+  private void writeVirtuosoACL(List<User> users,
+      BufferedWriter out_) throws IOException{
+   List<BufferedWriter> outs = Lists.newArrayList(
+        Files.newWriter(new File("./virt_auth_1.isql"), Charsets.UTF_8), 
+        Files.newWriter(new File("./virt_auth_2.isql"), Charsets.UTF_8),
+        Files.newWriter(new File("./virt_auth_3.isql"), Charsets.UTF_8),
+        Files.newWriter(new File("./virt_auth_4.isql"), Charsets.UTF_8));
+   Iterator<BufferedWriter> outIter = Iterators.cycle(outs);
+    
+    
+    
+    
+    for(User user: users){
+      BufferedWriter out = outIter.next();
+      out.write(String.format("DB.DBA.USER_CREATE ('%1$s', '%1$s');\n" , user.name));
+      out.write(String.format("USER_GRANT_ROLE('%s', 'SPARQL_SELECT', 0);\n", user.name));
+      out.write(String.format("DB.DBA.RDF_DEFAULT_USER_PERMS_SET ('%s', 0);\n", user.name));
+      Set<String> graphs = new HashSet<String>();
+      
+      for(Group group: user.groups){
+        graphs.addAll(group.graphs);
       }
+      for(String graph : graphs){
+        out.write(String.format("DB.DBA.RDF_GRAPH_USER_PERMS_SET ('%s', '%s', 1);\n",  graph,user.name));
+      }
+    }
+    for(BufferedWriter out: outs){
+      out.close();
     }
   }
 
@@ -289,13 +333,21 @@ public class AuthGenerator {
 
   private void writerUserGRaphCount(List<User> users,
       BufferedWriter userGraphCount) throws IOException {
+    int sumVisibl = 0;
+    int usercount = 0;
     for(User user: users){
+      if(user.name.startsWith("user")){
+        usercount++;
+      }
       Set<String> graphs= Sets.newHashSet();
       for(Group group: user.groups){
         graphs.addAll(group.graphs);
+        sumVisibl += group.graphs.size();
+       
       }
       userGraphCount.write(String.format("%s \t %d \n", user.name, graphs.size()));
     }
+    userGraphCount.write("Average visible graphs per user: " + (double)((double)sumVisibl)/((double)usercount));
     
   }
   
