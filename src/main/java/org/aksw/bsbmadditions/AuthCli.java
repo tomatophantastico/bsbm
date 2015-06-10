@@ -141,10 +141,10 @@ public class  AuthCli  {
     
     
     BufferedWriter gtc = Files.newWriter(new File(fileNameString + "_graph_triple_count.txt"), Charset.defaultCharset());
-    
+    int i  = 0;
     for(Integer count: sortedGraphs.keySet()){
       for(String graph: sortedGraphs.get(count)){
-        gtc.write(graph + "\t" + count  + "\n");
+        gtc.write(i++ +"\t" +graph + "\t" + count  + "\n");
 
       }
     }
