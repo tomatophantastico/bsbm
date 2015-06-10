@@ -9,6 +9,7 @@ import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -141,8 +142,8 @@ public class  AuthCli  {
     
     
     BufferedWriter gtc = Files.newWriter(new File(fileNameString + "_graph_triple_count.txt"), Charset.defaultCharset());
-    int i  = 0;
-    for(Integer count: sortedGraphs.keySet()){
+    int i  = 0; 
+    for(Integer count: sortedGraphs.keySet().descendingSet()){
       for(String graph: sortedGraphs.get(count)){
         gtc.write(i++ +"\t" +graph + "\t" + count  + "\n");
 

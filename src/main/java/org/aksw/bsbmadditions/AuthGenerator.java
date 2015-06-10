@@ -358,14 +358,20 @@ public class AuthGenerator {
       
       //no joiners here, as too memory costly
       Iterator<String> gi = group.graphs.iterator();
-      out.write(String.format("auth:readGraph   <%s>",gi.next()));
       
-      while(gi.hasNext()){
-        out.write(String.format(", <%s>",gi.next()));
-      }
+      while (gi.hasNext()){
+        out.write(String.format("auth:readGraph   <%s>",gi.next()));
+        int i = 0;
+        while(gi.hasNext()&&i<100){
+          out.write(String.format(", <%s>",gi.next()));
+          i++;
+        }
         
+        out.write("; \n");   
+      }   
+      out.write(". \n");   
     }
-    out.write(". \n");   
+      
   }
   
   
