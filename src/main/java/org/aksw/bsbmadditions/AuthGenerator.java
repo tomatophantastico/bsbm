@@ -369,8 +369,8 @@ public class AuthGenerator {
         
         out.write("; \n");   
       }   
-      out.write(". \n");   
     }
+    out.write(". \n");   
       
   }
   
