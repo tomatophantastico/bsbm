@@ -98,7 +98,7 @@ public class NetQuery {
 			 if(queryType==Query.DESCRIBE_TYPE || queryType==Query.CONSTRUCT_TYPE){
 			   request.addHeader(new BasicHeader("Accept", "application/rdf+xml"));
 			 }else{
-		     request.addHeader(new BasicHeader("Accept", "application/sparql-results+xml"));
+		     //request.addHeader(new BasicHeader("Accept", "application/sparql-results+xml"));
 			 } 
 		   if(queryType==Query.UPDATE_TYPE) {
 		      HttpPost post = new HttpPost(urlString);
