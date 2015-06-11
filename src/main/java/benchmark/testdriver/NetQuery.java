@@ -140,6 +140,7 @@ public class NetQuery {
 	protected InputStream exec() {
 	  CloseableHttpResponse response = null;
 		try {
+		  start = System.nanoTime();
 			response =  httpclient.execute(request);
 
 		} catch(IOException e) {
@@ -148,7 +149,6 @@ public class NetQuery {
 			System.exit(-1);
 		}
 		try {
-			start = System.nanoTime();
 			int rc = response.getStatusLine().getStatusCode();
 			if(rc < 200 || rc >= 300) {
 				System.err.println("Query execution: Received error code " + rc + " from server");
