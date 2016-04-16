@@ -2,7 +2,8 @@
 
 DATA_DIR="."
 
-for PC in 2848 28480 284800
+for PC in 2848 
+#28480 284800
 do
 	for SER in nqr nqp trig ttl
 	do
@@ -11,12 +12,12 @@ do
 		./generate -pc $PC -s $SER 
 		if [ "$SER" == "trig" ]; then
 			./generateAuth -fn dataset.trig -uc 20 -gc 10
-			pigz dataset.trig
+			pigz -f dataset.trig
 		elif [ "$SER" == "nqr" ] || [ "$SER" == "nqp" ]; then
 			./generateAuth -fn dataset.nq -uc 20 -gc 10
-			pigz dataset.nq
+			pigz -f dataset.nq
 		else
-			pigz dataset.ttl
+			pigz -f dataset.ttl
 		fi	
 		
 		mv dataset* $DIR 
