@@ -22,6 +22,7 @@ import benchmark.serializer.*;
 import java.util.*;
 
 import benchmark.vocabulary.*;
+
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -95,7 +96,7 @@ public class Generator {
 				System.exit(-1);
 			}
 			nrOfMinProductNrForUpdate = productCount - nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset + 1;
-			updateDatasetSerializer = new NTriples(updateDatasetFileName, forwardChaining);
+			updateDatasetSerializer = new NTriples(updateDatasetFileName,".nt", forwardChaining);
 			updateResourceData = new ArrayList<List<BSBMResource>>();
 			for(int i = 0; i<nrOfProductsPerTransaction*nrOfTransactionsInUpdateDataset; i++)
 				updateResourceData.add(new ArrayList<BSBMResource>());
@@ -140,10 +141,14 @@ public class Generator {
 	private static Serializer getSerializer(String type) {
 		String t = type.toLowerCase();
 		if(t.equals("nt"))
-			return new NTriples(outputFileName, forwardChaining, nrOfOutputFiles);
+			return new NTriples( outputFileName, ".nt", forwardChaining, nrOfOutputFiles);
 		else if(t.equals("trig"))
 			return new TriG(outputFileName + ".trig", forwardChaining);
-		else if(t.equals("ttl"))
+		else if(t.equals("nqr"))
+      return new NQuadByResource(outputFileName, ".nq", forwardChaining);
+    else if(t.equals("nqp"))
+      return new NQuadContextProduct(outputFileName, ".nq", forwardChaining);
+    else if(t.equals("ttl"))
 			return new Turtle(outputFileName, forwardChaining, nrOfOutputFiles);
 		else if(t.equals("xml"))
 			return new XMLSerializer(outputFileName + ".xml", forwardChaining);
@@ -435,10 +440,10 @@ public class Generator {
 				String comment = dictionary2.getRandomSentence(commentNrWords);
 				
 				ProductFeature pf = new ProductFeature(productFeatureNr,label,comment);
-				if(!namedGraph) {
+
 					pf.setPublisher(1);
 					pf.setPublishDate(publishDateGen.randomDateInMillis());
-				}
+				
 				
 				features.add(productFeatureNr);
 				
@@ -470,10 +475,9 @@ public class Generator {
 				
 				ProductFeature pf = new ProductFeature(productFeatureNr,label,comment);
 				
-				if(!namedGraph) {
 					pf.setPublisher(1);
 					pf.setPublishDate(publishDateGen.randomDateInMillis());
-				}
+				
 				
 				features.add(productFeatureNr);
 				
@@ -547,13 +551,12 @@ public class Generator {
 			Producer p = new Producer(producerNr,label,comment,homepage,country);
 			
 			//Generate Publisher data
-			if(!namedGraph) {
+			
 				p.setPublisher(producerNr);
 				p.setPublishDate(publishDateGen.randomDateInMillis());
 				bundle.setPublisher(p.toString());
 				bundle.setPublisherNum(p.getNr());
-			}
-			else {
+			if(namedGraph) {
 				bundle.setPublisher(p.toString());
 				bundle.setPublishDate(publishDateGen.randomDateInMillis());
 				bundle.setGraphName("<" + Producer.getProducerNS(p.getNr()) + "Graph-" + DateGenerator.formatDate(bundle.getPublishDate()) + ">");
@@ -699,10 +702,10 @@ public class Generator {
 			p.setFeatures(features);
 				
 			//Generate Publisher data
-			if(!namedGraph) {
+	
 				p.setPublisher(producer);
 				p.setPublishDate(publishDateGen.randomDateInMillis());
-			}
+	
 			
 			// Decide if the product goes to the update dataset
 			if(generateUpdateDataset && nr>=nrOfMinProductNrForUpdate)
@@ -806,13 +809,12 @@ public class Generator {
 			Vendor v = new Vendor(vendorNr,label,comment,homepage,country);
 			
 			//Generate Publisher data
-			if(!namedGraph) {
+			
 				v.setPublisher(vendorNr);
 				v.setPublishDate(publishDateGen.randomDateInMillis(today.getTimeInMillis()-(97*DateGenerator.oneDayInMillis), today.getTimeInMillis()));
 				bundle.setPublisher(v.toString());
 				bundle.setPublisherNum(v.getNr());
-			}
-			else {
+			if(namedGraph) {
 				bundle.setPublisher(v.toString());
 				bundle.setPublishDate(publishDateGen.randomDateInMillis());
 				bundle.setGraphName("<" + Vendor.getVendorNS(v.getNr()) + "Graph-" + DateGenerator.formatDate(bundle.getPublishDate()) + ">");
@@ -861,10 +863,10 @@ public class Generator {
 			
 			Offer offer = new Offer(nr, product, vendor, price, validFrom, validTo, deliveryDays, webpage);
 			
-			if(!namedGraph) {
-				offer.setPublishDate(publishDate);
-				offer.setPublisher(vendor);
-			}
+
+			offer.setPublishDate(publishDate);
+			offer.setPublisher(vendor);
+
 			if(generateUpdateDataset && product>=nrOfMinProductNrForUpdate)
 				updateResourceData.get(product-nrOfMinProductNrForUpdate).add(offer);
 			else
@@ -977,9 +979,9 @@ public class Generator {
 				Person p = new Person(personNr,name,country,mbox_sha1);
 				
 				//Generate Publisher data
-				if(!namedGraph) {
+		
 					p.setPublishDate(publishDateGen.randomDateInMillis());
-				}
+				
 				//needed for qualified name
 				p.setPublisher(ratingSiteNr);
 			
@@ -1034,9 +1036,9 @@ public class Generator {
 			
 			Review review = new Review(reviewNr, product, personNr, reviewDate, title, text, ratings, language, producerOfProduct);
 			
-			if(!namedGraph) {
+		
 				review.setPublishDate(publishDateGen.randomDateInMillis(reviewDate, today.getTimeInMillis()));
-			}
+			
 			//needed for qualified name
 			review.setPublisher(person.getPublisher());
 			

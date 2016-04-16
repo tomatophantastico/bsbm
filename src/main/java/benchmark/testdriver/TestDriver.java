@@ -102,6 +102,7 @@ public class TestDriver {
 																	// are
 																	// compared
 	protected boolean rampup = false;
+  protected UserPassPool userpasspool;
 
 	public TestDriver(String[] args) {
 		processProgramParameters(args);
@@ -282,6 +283,10 @@ public class TestDriver {
 		queryRun = setupQueryRun(maxQueryPerRun, queryRuns);
 
 		queryMix = new QueryMix(queries, queryRun);
+		if(userpasspool!=null){
+	    queryMix.userpass = userpasspool.getNextUserpass();
+
+		}
 	}
 
 	/*
@@ -484,7 +489,16 @@ public class TestDriver {
 		for (int nrRun = -warmups; nrRun < nrRuns; nrRun++) {
 			long startTime = System.currentTimeMillis();
 			queryMix.setRun(nrRun);
+			if(userpasspool!=null){
+			  queryMix.userpass = userpasspool.getNextUserpass();
+			}
 			while (queryMix.hasNext()) {
+			  //on warumps, iterate through users on every query
+			  
+			  if (nrRun < 0 && userpasspool != null) {
+			    queryMix.userpass = userpasspool.getNextUserpass();
+        }
+			  
 				Query next = queryMix.getNext();
 
 				// Don't run update queries on warm-up
@@ -531,7 +545,7 @@ public class TestDriver {
 					+ (System.currentTimeMillis() - startTime) + "ms");
 			queryMix.finishRun();
 		}
-		logger.log(Level.ALL, printResults(true));
+		logger.log(Level.INFO, printResults(true));
 
 		try {
 			FileWriter resultWriter = new FileWriter(xmlResultFile);
@@ -715,7 +729,7 @@ public class TestDriver {
 		manager.createClients();
 		manager.startWarmup();
 		manager.startRun();
-		logger.log(Level.ALL, printResults(true));
+		logger.log(Level.INFO, printResults(true));
 		try {
 			FileWriter resultWriter = new FileWriter(xmlResultFile);
 			resultWriter.append(printXMLResults(true));
@@ -777,6 +791,8 @@ public class TestDriver {
 					sparqlUpdateQueryParameter = args[i++ + 1];
 				} else if (!args[i].startsWith("-")) {
 					sparqlEndpoint = args[i];
+				} else if(args[i].equals("-upf")){
+				  userpasspool = new UserPassPool(new File(args[i++ + 1]));
 				} else {
 					if (!args[i].equals("-help"))
 						System.err.println("Unknown parameter: " + args[i]);

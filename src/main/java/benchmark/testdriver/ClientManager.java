@@ -40,7 +40,7 @@ public class ClientManager {
 					sConn = new SPARQLConnection(parent.sparqlEndpoint, parent.sparqlUpdateEndpoint, parent.defaultGraph, parent.timeout);
 			}
 				
-			clients[i] = new ClientThread(pool, sConn, ignoreQueries.length, this, i+1);
+			clients[i] = new ClientThread(pool, sConn, ignoreQueries.length, this, i+1,parent.userpasspool);
 		}
 		System.out.println("Clients created.");
 		System.out.flush();

@@ -1,6 +1,8 @@
 package benchmark.serializer;
 
+import java.util.GregorianCalendar;
 import java.util.Iterator;
+
 import benchmark.model.*;
 import benchmark.vocabulary.*;
 import benchmark.generator.*;
@@ -173,7 +175,7 @@ public class TriG implements Serializer {
 		result.append(createTriple(
 				graph,
 				DC.prefixed("date"),
-				createDataTypeLiteral(publishDate, XSD.prefixed("dateTime"))));
+				createDataTypeLiteral(publishDate, XSD.prefixed("date"))));
 		
 		return result.toString();
 	}
@@ -274,9 +276,22 @@ public class TriG implements Serializer {
 				createDataTypeLiteral(offer.getDeliveryDays().toString(), XSD.prefixed("integer"))));
 		
 		//bsbm:offerWebpage
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("offerWebpage"),
 				createURIref(offer.getOfferWebpage())));
+		
+	  //dc:publisher
+    result.append(createTriplePO(
+        DC.prefixed("publisher"),
+        Vendor.getPrefixed(offer.getPublisher())));
+    
+    //dc:date
+    GregorianCalendar date = new GregorianCalendar();
+    date.setTimeInMillis(offer.getPublishDate());
+    String dateString = DateGenerator.formatDate(date);
+    result.append(createTriplePOEnd(
+        DC.prefixed("date"),
+        createDataTypeLiteral(dateString, XSD.prefixed("date"))));
 		
 		return result.toString();
 	}
@@ -392,9 +407,22 @@ public class TriG implements Serializer {
 				createLiteral(person.getMbox_sha1sum())));
 		
 		//bsbm:country
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("country"),
 				createURIref(ISO3166.find(person.getCountryCode()))));
+		
+    //dc:publisher
+    result.append(createTriplePO(
+        DC.prefixed("publisher"),
+        RatingSite.getPrefixed(person.getPublisher())));
+    
+    //dc:date
+    GregorianCalendar date = new GregorianCalendar();
+    date.setTimeInMillis(person.getPublishDate());
+    String dateString = DateGenerator.formatDate(date);
+    result.append(createTriplePOEnd(
+        DC.prefixed("date"),
+        createDataTypeLiteral(dateString, XSD.prefixed("date"))));
 		
 		return result.toString();
 	}
@@ -432,9 +460,22 @@ public class TriG implements Serializer {
 				createURIref(producer.getHomepage())));
 		
 		//bsbm:country
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("country"),
 				createURIref(ISO3166.find(producer.getCountryCode()))));
+		
+	//dc:publisher
+    result.append(createTriplePO(
+        DC.prefixed("publisher"),
+        Producer.getPrefixed(producer.getPublisher())));
+    
+    //dc:date
+    GregorianCalendar date = new GregorianCalendar();
+    date.setTimeInMillis(producer.getPublishDate());
+    String dateString = DateGenerator.formatDate(date);
+    result.append(createTriplePOEnd(
+        DC.prefixed("date"),
+        createDataTypeLiteral(dateString, XSD.prefixed("date"))));
 		
 		return result.toString();
 	}
@@ -462,9 +503,23 @@ public class TriG implements Serializer {
 				createLiteral(pf.getLabel())));
 		
 		//rdfs:comment
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				RDFS.prefixed("comment"),
 				createLiteral(pf.getComment())));
+		
+	//dc:publisher
+    result.append(createTriplePO(
+        DC.prefixed("publisher"),
+        createURIref(BSBM.getStandardizationInstitution(pf.getPublisher()))));
+    
+    //dc:date
+    GregorianCalendar date = new GregorianCalendar();
+    date.setTimeInMillis(pf.getPublishDate());
+    String dateString = DateGenerator.formatDate(date);
+    result.append(createTriplePOEnd(
+        DC.prefixed("date"),
+        createDataTypeLiteral(dateString, XSD.prefixed("date"))));
+
 
 		return result.toString();
 	}
@@ -502,9 +557,23 @@ public class TriG implements Serializer {
 				createURIref(vendor.getHomepage())));
 		
 		//bsbm:country
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("country"),
 				createURIref(ISO3166.find(vendor.getCountryCode()))));	
+		
+	//dc:publisher
+    result.append(createTriplePO(
+        DC.prefixed("publisher"),
+        Vendor.getPrefixed(vendor.getPublisher())));
+    
+    //dc:date
+    GregorianCalendar date = new GregorianCalendar();
+    date.setTimeInMillis(vendor.getPublishDate());
+    String dateString = DateGenerator.formatDate(date);
+    result.append(createTriplePOEnd(
+        DC.prefixed("date"),
+        createDataTypeLiteral(dateString, XSD.prefixed("date"))));
+    
 		
 		return result.toString();
 	}
@@ -562,9 +631,22 @@ public class TriG implements Serializer {
 		GregorianCalendar reviewDate = new GregorianCalendar();
 		reviewDate.setTimeInMillis(review.getReviewDate());
 		String reviewDateString = DateGenerator.formatDateTime(reviewDate);
-		result.append(createTriplePOEnd(
+		result.append(createTriplePO(
 				BSBM.prefixed("reviewDate"),
 				createDataTypeLiteral(reviewDateString, XSD.prefixed("dateTime"))));
+		
+	//dc:publisher
+    result.append(createTriplePO(
+        DC.prefixed("publisher"),
+        RatingSite.getPrefixed(review.getPublisher())));
+    
+    //dc:date
+    GregorianCalendar date = new GregorianCalendar();
+    date.setTimeInMillis(review.getPublishDate());
+    String dateString = DateGenerator.formatDate(date);
+    result.append(createTriplePOEnd(
+        DC.prefixed("date"),
+        createDataTypeLiteral(dateString, XSD.prefixed("date"))));
 		
 		return result.toString();
 	}

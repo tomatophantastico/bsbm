@@ -10,25 +10,28 @@ import java.util.*;
 public class NTriples implements Serializer {
 	private FileWriter[] fileWriter;
 	private boolean forwardChaining;
-	private long nrTriples;
+	protected long nrTriples;
 	private int currentWriter = 0;
 	
-	public NTriples(String file, boolean forwardChaining)
+	protected String fileSuffix = ".nt";
+	
+	public NTriples(String file, String filesuffix, boolean forwardChaining)
 	{
-		this(file, forwardChaining, 1);
+		this(file,filesuffix ,forwardChaining, 1);
 	}
 	
-	public NTriples(String file, boolean forwardChaining, int nrOfOutputFiles)
+	public NTriples(String file, String filesuffix, boolean forwardChaining, int nrOfOutputFiles)
 	{
+	  this.fileSuffix = filesuffix;
 		int nrOfDigits = ((int)Math.log10(nrOfOutputFiles)) + 1;
 		String formatString = "%0" + nrOfDigits + "d";
 		try{
 			fileWriter = new FileWriter[nrOfOutputFiles];
 			if(nrOfOutputFiles==1)
-				fileWriter[0] = new FileWriter(file + ".nt");
+				fileWriter[0] = new FileWriter(file + fileSuffix);
 			else
 				for(int i=1;i<=nrOfOutputFiles;i++)
-					fileWriter[i-1] = new FileWriter(file + String.format(formatString, i) + ".nt");
+					fileWriter[i-1] = new FileWriter(file + String.format(formatString, i) + fileSuffix);
 		} catch(IOException e){
 			System.err.println("Could not open File");
 			System.exit(-1);
@@ -83,7 +86,7 @@ public class NTriples implements Serializer {
 	 * Converts the ProductType Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertProductType(ProductType pType)
+	protected String convertProductType(ProductType pType)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -139,7 +142,7 @@ public class NTriples implements Serializer {
 	 * Converts the Offer Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertOffer(Offer offer)
+	protected String convertOffer(Offer offer)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -223,7 +226,7 @@ public class NTriples implements Serializer {
 	 * Converts the Product Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertProduct(Product product)
+	protected String convertProduct(Product product)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -328,7 +331,7 @@ public class NTriples implements Serializer {
 	 * Converts the Person Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertPerson(Person person)
+	protected String convertPerson(Person person)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -380,7 +383,7 @@ public class NTriples implements Serializer {
 	 * Converts the Producer Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertProducer(Producer producer)
+	protected String convertProducer(Producer producer)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -438,7 +441,7 @@ public class NTriples implements Serializer {
 	 * Converts the ProductFeature Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertProductFeature(ProductFeature pf)
+	protected String convertProductFeature(ProductFeature pf)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -484,7 +487,7 @@ public class NTriples implements Serializer {
 	 * Converts the Vendor Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertVendor(Vendor vendor)
+	protected String convertVendor(Vendor vendor)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -543,7 +546,7 @@ public class NTriples implements Serializer {
 	 * Converts the Review Object into an N-Triples String
 	 * representation.
 	 */
-	private String convertReview(Review review)
+	protected String convertReview(Review review)
 	{
 		StringBuffer result = new StringBuffer();
 		//First the uriref for the subject
@@ -621,7 +624,7 @@ public class NTriples implements Serializer {
 
 	
 	//Create Literal
-	private String createLiteral(String value)
+	protected String createLiteral(String value)
 	{
 		StringBuffer result = new StringBuffer();
 		result.append("\"");
@@ -631,7 +634,7 @@ public class NTriples implements Serializer {
 	}
 	
 	//Create typed literal
-	private String createDataTypeLiteral(String value, String datatypeURI)
+	protected String createDataTypeLiteral(String value, String datatypeURI)
 	{
 		StringBuffer result = new StringBuffer();
 		result.append("\"");
@@ -642,7 +645,7 @@ public class NTriples implements Serializer {
 	}
 	
 	//Create language tagged literal
-	private String createLanguageLiteral(String text, String languageCode)
+	protected String createLanguageLiteral(String text, String languageCode)
 	{
 		StringBuffer result = new StringBuffer();
 		result.append("\"");
@@ -653,7 +656,7 @@ public class NTriples implements Serializer {
 	}
 
 	//Creates a triple
-	private String createTriple(String subject, String predicate, String object)
+	protected String createTriple(String subject, String predicate, String object)
 	{
 		StringBuffer result = new StringBuffer();
 		result.append(subject);
@@ -669,7 +672,7 @@ public class NTriples implements Serializer {
 	}
 	
 	//Create URIREF from namespace and element
-	private String createURIref(String namespace, String element)
+	protected String createURIref(String namespace, String element)
 	{
 		StringBuffer result = new StringBuffer();
 		result.append("<");
@@ -680,7 +683,7 @@ public class NTriples implements Serializer {
 	}
 	
 	//Create URIREF from URI
-	private String createURIref(String uri)
+	protected String createURIref(String uri)
 	{
 		StringBuffer result = new StringBuffer();
 		result.append("<");

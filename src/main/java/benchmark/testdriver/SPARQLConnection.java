@@ -51,9 +51,9 @@ public class SPARQLConnection implements ServerConnection{
 
 		NetQuery qe;
 		if(queryType==Query.UPDATE_TYPE)
-			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 		else
-			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 		int queryMixRun = queryMix.getRun() + 1;
 
 		InputStream is = qe.exec();
@@ -82,10 +82,10 @@ public class SPARQLConnection implements ServerConnection{
 		}
 		timeInSeconds = qe.getExecutionTimeInSeconds();
 
-		if(logger.isEnabledFor( Level.ALL ) && queryMixRun > 0)
+		if(logger.isEnabledFor( Level.INFO ) && queryMixRun > 0)
 			logResultInfo(queryNr, queryMixRun, timeInSeconds,
 	                   queryString, queryType,
-	                   resultCount);
+	                   resultCount,queryMix.userpass);
 		
 		queryMix.setCurrent(resultCount, timeInSeconds);
 		qe.close();
@@ -100,9 +100,9 @@ public class SPARQLConnection implements ServerConnection{
 		
 		NetQuery qe;
 		if(query.getQueryType()==Query.UPDATE_TYPE)
-			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 		else
-			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout);
+			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, timeout,queryMix.userpass);
 
 		int queryMixRun = queryMix.getRun() + 1;
 
@@ -136,10 +136,10 @@ public class SPARQLConnection implements ServerConnection{
 			return;
 		}
 
-		if(logger.isEnabledFor( Level.ALL ) && queryMixRun > 0)
+		if(logger.isEnabledFor( Level.INFO ) && queryMixRun > 0)
 			logResultInfo(queryNr, queryMixRun, timeInSeconds,
 	                   queryString, queryType,
-	                   resultCount);
+	                   resultCount,queryMix.userpass);
 		
 		queryMix.setCurrent(resultCount, timeInSeconds);
 		qe.close();
@@ -168,14 +168,17 @@ private int countBytes(InputStream is) {
 	
 	private void logResultInfo(int queryNr, int queryMixRun, double timeInSeconds,
 			                   String queryString, byte queryType,
-			                   int resultCount) {
+			                   int resultCount, String userpass) {
 		StringBuffer sb = new StringBuffer(1000);
 		sb.append("\n\n\tQuery " + queryNr + " of run " + queryMixRun + " has been executed ");
 		sb.append("in " + String.format("%.6f",timeInSeconds) + " seconds.\n" );
 		sb.append("\n\tQuery string:\n\n");
 		sb.append(queryString);
 		sb.append("\n\n");
-	
+		if(userpass!=null){
+		  sb.append("user: " + userpass);
+		  sb.append("\n\n");
+		}
 		//Log results
 		if(queryType==Query.DESCRIBE_TYPE)
 			sb.append("\tQuery(Describe) result (" + resultCount + " Bytes): \n\n");
@@ -186,7 +189,7 @@ private int countBytes(InputStream is) {
 		
 
 		sb.append("\n__________________________________________________________________________________\n");
-		logger.log(Level.ALL, sb.toString());
+		logger.log(Level.INFO, sb.toString());
 	}
 	
 	private int countResults(InputStream s) throws SocketTimeoutException {
@@ -233,7 +236,7 @@ private int countBytes(InputStream is) {
 
 	/*
 	 * (non-Javadoc)
-	 * @see benchmark.testdriver.ServerConnection#executeValidation(benchmark.testdriver.Query, byte, java.lang.String[])
+	 * @see benchmark.testdriver.ServerConnection#executeValidation(benchmark.testdriver.Query, byte, java.lang.String[], String userpass)
 	 * Gather information about the result a query returns.
 	 */
 	public QueryResult executeValidation(Query query, byte queryType) {
@@ -245,9 +248,9 @@ private int countBytes(InputStream is) {
 
 		NetQuery qe;
 		if(queryType==Query.UPDATE_TYPE)
-			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, 0);
+			qe = new NetQuery(updateServiceURL, queryString, queryType, defaultGraph, 0,query.getQueryMix().userpass);
 		else
-			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, 0);
+			qe = new NetQuery(serviceURL, queryString, queryType, defaultGraph, 0,query.getQueryMix().userpass);
 
 		InputStream is = qe.exec();
 		
@@ -276,7 +279,7 @@ private int countBytes(InputStream is) {
 		sb.append("\n\n\tResult:\n\n");
 		sb.append(queryResult);
 		sb.append("\n\n__________________________________________________________________________________\n");
-		logger.log(Level.ALL, sb.toString());
+		logger.log(Level.INFO, sb.toString());
 	}
 	
 	private Document getXMLDocument(InputStream is) {
