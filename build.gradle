@@ -39,6 +39,8 @@ dependencies {
     compile 'org.openrdf.sesame:sesame-rio-nquads:2.8.1'
     compile 'com.google.guava:guava:18.0'
     compile 'org.apache.httpcomponents:httpclient:4.5'
+    compile 'org.mongodb:mongo-java-driver:3.2.2'
+    compile 'com.zaxxer:HikariCP:2.4.5'
 
 
 

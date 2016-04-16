@@ -24,13 +24,13 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.ObjectOutputStream;
-
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.LinkedList;
 
+import org.aksw.bsbmadditions.MongoDbConnection;
 import org.apache.log4j.xml.DOMConfigurator;
 import org.apache.log4j.Logger;
 import org.apache.log4j.Level;
@@ -103,12 +103,14 @@ public class TestDriver {
 																	// compared
 	protected boolean rampup = false;
   protected UserPassPool userpasspool;
+  protected String dbName;
+  protected boolean doMongo;
 
 	public TestDriver(String[] args) {
 		processProgramParameters(args);
 		System.out.print("Reading Test Driver data...");
 		System.out.flush();
-		if (doSQL)
+		if (doSQL || doMongo)
 			parameterPool = new SQLParameterPool(new File(resourceDir), seed);
 		else {
 			if (updateFile == null)
@@ -121,10 +123,13 @@ public class TestDriver {
 		System.out.println("done");
 
 		if (sparqlEndpoint != null && !multithreading) {
-			if (doSQL)
+			if (doSQL){
 				server = new SQLConnection(sparqlEndpoint, timeout,
 						driverClassName);
-			else
+			} else if(doMongo){
+			  server = new MongoDbConnection(sparqlEndpoint, dbName);
+			  
+			}else
 				server = new SPARQLConnection(sparqlEndpoint,
 						sparqlUpdateEndpoint, defaultGraph, timeout);
 		} else if (multithreading) {
@@ -759,7 +764,11 @@ public class TestDriver {
 					defaultGraph = args[i++ + 1];
 				} else if (args[i].equals("-sql")) {
 					doSQL = true;
-				} else if (args[i].equals("-mt")) {
+				} else if (args[i].equals("-mongodb")) {
+          doMongo = true;
+        } else if (args[i].equals("-dbname")) {
+          dbName = args[i++ + 1];
+        } else if (args[i].equals("-mt")) {
 					if (rampup)
 						throw new Exception(
 								"Incompatible options: -mt and -rampup");
