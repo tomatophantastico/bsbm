@@ -82,7 +82,7 @@ public class MongoDbConnection implements ServerConnection{
         List<Document> pipeline = Lists.newArrayList();
         for(int i = 2; i< queryParts.length;i++){
           String json = queryParts[i];
-          if(json.isEmpty()){
+          if(!json.isEmpty()){
             pipeline.add( Document.parse(queryParts[i]));
           }
         }
@@ -147,7 +147,10 @@ public class MongoDbConnection implements ServerConnection{
       if(queryParts[1].equals("aggregate")){
         List<Document> pipeline = Lists.newArrayList();
         for(int i = 2; 2< queryParts.length;i++){
-          pipeline.add( Document.parse(queryParts[i]));
+          String json = queryParts[i];
+          if(!json.isEmpty()){
+            pipeline.add( Document.parse(queryParts[i]));
+          }
         }
         
        iter =  collection.aggregate(pipeline).iterator();

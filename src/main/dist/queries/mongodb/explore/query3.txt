@@ -1,0 +1,9 @@
+product
+aggregate
+{$match:{propertyNum1: {$gt:@x@}, propertyNum3: {$lt:@y@}}}
+{$lookup:{from: "producttypeproduct", localField: "nr", foreignField: "product", as: "pt"}}
+{$match:{"pt.productType":@ProductType@}} 
+{$project:{label:1, "nr":1}}
+{$lookup: {from:"productfeatureproduct", localField: "nr", foreignField:"product",as:"pf"}}
+{$match: {"pf.productFeature":@ProductFeature1@}}
+{$match:{"pf.productFeature": {$ne:@ProductFeature2@}}}

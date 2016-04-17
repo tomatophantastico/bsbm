@@ -240,7 +240,7 @@ public class TestDriver {
 								+ ".txt");
 						File queryDescFile = new File(queryDir, "query" + qnr
 								+ "desc.txt");
-						if (doSQL)
+						if (doSQL || doMongo)
 							queries[qnr - 1] = new Query(queryFile,
 									queryDescFile, "@");
 						else

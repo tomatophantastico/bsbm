@@ -1,0 +1,8 @@
+offer
+aggregate
+{$match:{nr:@OfferXYZ@}}
+{$lookup:{from: "vendor", localField:"vendor", foreignField:"nr", as: "vendor"}}
+{$lookup:{from: "product", localField:"product", foreignField:"nr", as: "product"}}
+{$unwind:"$product"}
+{$unwind:"$vendor"}
+{$group:{_id:{ productNr: "$product.nr", productlabel:"$product.label", vendorname:"$vendor.label", vendorhomepage:"$vendor.homepage",offerURL:"$offerWebpage", price:"$price", deliveryDays:"$deliveryDays",validTo:"$validTo"}}}
