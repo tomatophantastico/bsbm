@@ -1,0 +1,17 @@
+productfeatureproduct
+aggregate
+{$match: {product:@ProductXYZ@}}
+{$lookup: {from: "productfeatureproduct", localField: "productFeature", foreignField: "productFeature", as:"pfp1" }}
+{$unwind:"$pfp1"}
+{$lookup: {from: "productfeatureproduct", localField: "pfp1.productFeature", foreignField: "productFeature", as:"pfp2" }}
+{$unwind:"$pfp2"}
+{$group:{_id: {oldProduct:"$product", product:"$pfp1.product"}}}
+{$lookup:{from:"product", localField:"_id.product", foreignField:"nr", as:"p" }}
+{$lookup:{from:"product", localField:"_id.oldProduct", foreignField:"nr", as:"p2" }}
+{$unwind:"$p2"}
+{$unwind:"$p"}
+{$project:{_id:0,"p.nr":1, "p.label":1, "p.propertyNum1":1, "p.propertyNum2":1,"p2.nr":1,  "p2.propertyNum1":1, "p2.propertyNum2":1, }}
+{$group:{_id:{nr:"$p.nr", label:"$p.label", propertyNum1:"$p.propertyNum1",  propertyNum2:"$p.propertyNum2",p2nr:"$p2.nr", p2propertyNum1:"$p2.propertyNum1",  p2propertyNum2:"$p2.propertyNum2",p2propertyNum1Higher: {$add:["$p2.propertyNum1",120]},p2propertyNum2Higher: {$add:["$p2.propertyNum2",170]}, p2propertyNum1Lower:{$add:["$p2.propertyNum1",-120]},p2propertyNum2Lower: {$add:["$p2.propertyNum2",-170]}}} }
+{$project: {OneLT1:{$cmp:["$_id.propertyNum1","$_id.p2propertyNum1Higher"]}, TwoLT2:{$cmp:["$_id.propertyNum2","$_id.p2propertyNum2Higher"]}, TwoGT2:{$cmp:["$_id.propertyNum2","$_id.p2propertyNum2Lower"]},  OneGT2:{$cmp:["$_id.propertyNum1","$_id.p2propertyNum1Lower"]}}}
+{$match: {OneLT1:-1, TwoLT2:-1, OneGT2:1, TwoGT2:1, "_id.nr": {$ne:20} }}
+{$project:{"_id.nr":1, "_id.label":1}}])

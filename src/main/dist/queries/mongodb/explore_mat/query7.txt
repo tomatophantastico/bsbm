@@ -1,0 +1,14 @@
+product
+aggregate
+{$match:{nr:@ProductXYZ@}}
+{$lookup:{from:"offer", localField:"nr",foreignField:"nr", as: "o" }}
+{$unwind:"$o"}
+{$lookup:{from:"vendor", localField:"o.vendor", foreignField:"nr", as:"v"}}
+{$unwind:"$v"} 
+{$match:{"v.country":"DE"}}
+{$lookup:{from: "review", localField:"nr", foreignField:"product", as: "r"}}
+{$unwind:"$r"}
+{$lookup:{from: "person", localField:"r.person", foreignField:"nr", as: "p"}}
+{$unwind:"$p"}
+{$match: {"o.validTo": {$gt:ISODate("@currentDate@")}}}
+{$project:{_id:0, label:1,"o.nr":1,"o.price":1, "v.nr":1, "v.label":1, "r.nr":1, "r.person":1, "r.title":1, "r.rating1":1, "r.rating2":1, "p.name":1}}

@@ -1,0 +1,9 @@
+review
+aggregate
+{$match:{ product:@ProductXYZ@,language:"en"}}
+{$lookup:{from: "person", localField:"person", foreignField: "nr", as: "person"} }
+{$unwind:"$person"}
+{$sort:{reviewDate:1}}
+{$project:{_id:0,title:1, text:1, reviewDate:1, "person.nr":1, "person.name":1, rating1:1, rating2:1, rating3:1, rating4:1}}
+{$limit:10}
+
