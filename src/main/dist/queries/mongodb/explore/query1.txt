@@ -1,4 +1,4 @@
-product
+productfeatureproduct
 aggregate
 {"$group":{"_id":"$product","pfp":{"$push":"$productFeature"}}}
 {"$match":{"$and":[{"pfp":@ProductFeature1@},{"pfp":@ProductFeature2@}]}}
