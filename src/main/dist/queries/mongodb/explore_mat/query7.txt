@@ -1,7 +1,5 @@
 offer
 aggregate
-{$match:{$and:[{"product.nr":@ProductXYZ@, "vendor.country":"DE"}, {"validTo":{$gt:ISODate(@currentDay@)}}]}}
+{$match:{$and:[{"product.nr":@ProductXYZ@, "vendor.country":"DE"}, {"validTo":{$gt:ISODate("@currentDay@")}}]}}
 {$lookup:{from:"review", localField:"product.nr", foreignField:"product", as:"r"}}
 {$project:{"r.text":1, "r.rating1":1, "r.rating2":1, "r.person.name":1, "r.title":1, "price":1, "nr":1, "product.label":1, "vendor.nr":1,"vendor.label":1}}
-
-
