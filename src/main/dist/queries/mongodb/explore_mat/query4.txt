@@ -6,4 +6,5 @@ aggregate
 {$lookup:{from:"productfeatureproduct", localField:"product", foreignField:"product", as: "feature"}}
 {$match:{"feature.productFeature":@ProductFeature1@}}
 {$match:{$or:[{$and:[{"feature.productFeature":@ProductFeature2@}, {"p.propertyNum1":{$gt:@x@}}]},{$and:[{"feature.productFeature":@ProductFeature3@}, {"p.propertyNum2":{$gt:@y@}}]}]}}
-
+{$limit:10}
+{$skip:10}

@@ -1,9 +1,11 @@
-product
+product_matComplex
 aggregate
-{$match:{propertyNum1: {$gt:@x@}, propertyNum3: {$lt:@y@}}}
-{$lookup:{from: "producttypeproduct", localField: "nr", foreignField: "product", as: "pt"}}
-{$match:{"pt.productType":@ProductType@}} 
-{$project:{label:1, "nr":1}}
-{$lookup: {from:"productfeatureproduct", localField: "nr", foreignField:"product",as:"pf"}}
-{$match: {"pf.productFeature":@ProductFeature1@}}
-{$match:{"pf.productFeature": {$ne:@ProductFeature2@}}}
+{$match:{$and:[{"productFeature.nr":@ProductFeature1@}, {"productFeature.nr":{$ne:@ProductFeature2@}}, {"propertyNum1":{$gt:@x@}}, {"propertyNum3":{$lt:@y@}}]}}
+{$project:{"label":1, "_id":0,"nr":1}}
+{$lookup:{from:"producttypeproduct", localField:"nr",foreignField:"product", as:"type"}}
+{$match:{"type.productType":@ProductType@}}
+{$project:{"label":1, "nr":1}}
+{$sort:{"label":1}}
+{$limit:10}
+
+

@@ -1,9 +1,9 @@
 review
 aggregate
-{$match:{ nr:@ReviewXYZ@}}
-{$lookup:{from: "person", localField:"person", foreignField: "nr", as: "person"}}
-{$unwind:"$person"}
-{$group: {_id:{nr: "$person.nr", name:"$person.name", mbox_sha1sum:"$person.mbox_sha1sum", country:"$person.country"}}}
-{$lookup:{from: "review",localField: "_id.nr", foreignField:"person", as: "review"}}
-{$unwind:"$review"}
-{$project:{"_id.nr":1, "_id.mbox_sha1sum":1,"_id.name":1,"review.nr":1, "review.product":1, "review.title":1, "_id.country":1  }}
+{$match:{"nr":@ReviewXYZ@}}
+{$project:{"person":1}}
+{$lookup:{from:"review", localField:"person.nr", foreignField:"person.nr", as:"r"}}
+{$project:{"person.name":1,"person.nr":1, "person.mbox_sh1sum":1, "person.country":1, "r.product":1, "r.title":1, "r.nr":1} }
+
+
+
