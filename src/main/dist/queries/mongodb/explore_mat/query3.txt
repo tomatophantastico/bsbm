@@ -1,6 +1,6 @@
 product_matComplex
 aggregate
-{$match:{$and:[{"productFeature.nr":@ProductFeature1@}, {"productFeature.nr":{$ne:@ProductFeature2@}}, {"propertyNum1":{$gt:@x@}}, {"propertyNum3":{$lt:@y@}}]}}
+{$match:{$and:[{"productfeature.nr":@ProductFeature1@}, {"productfeature.nr":{$ne:@ProductFeature2@}}, {"propertyNum1":{$gt:@x@}}, {"propertyNum3":{$lt:@y@}}]}}
 {$project:{"label":1, "_id":0,"nr":1}}
 {$lookup:{from:"producttypeproduct", localField:"nr",foreignField:"product", as:"type"}}
 {$match:{"type.productType":@ProductType@}}
