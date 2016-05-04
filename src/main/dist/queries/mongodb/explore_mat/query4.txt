@@ -1,10 +1,5 @@
-producttypeproduct
+product_feature_typ
 aggregate
-{$match:{productType:@ProductType@}}
-{$lookup:{from:"product", localField:"product", foreignField:"nr", as: "p"}}
-{$unwind:"$p"} 
-{$lookup:{from:"productfeatureproduct", localField:"product", foreignField:"product", as: "feature"}}
-{$match:{"feature.productFeature":@ProductFeature1@}}
-{$match:{$or:[{$and:[{"feature.productfeature":@ProductFeature2@}, {"p.propertyNum1":{$gt:@x@}}]},{$and:[{"feature.productfeature":@ProductFeature3@}, {"p.propertyNum2":{$gt:@y@}}]}]}}
+{$match:{$or:[{$and:[{productType:112},{"productfeature":330},{"productfeature.nr":320}, {"propertyNum1":{$gt:457}}]},{$and:[{"productfeature.nr":16}, {"propertyNum2":{$gt:488}}]}]}}
 {$limit:10}
 {$skip:10}
