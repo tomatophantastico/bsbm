@@ -1,5 +1,4 @@
-productfeatureproduct
-aggregate
+productfeatureproduct.aggregate
 {"$group":{"_id":"$product","pfp":{"$push":"$productFeature"}}}
 {"$match":{"$and":[{"pfp":@ProductFeature1@},{"pfp":@ProductFeature2@}]}}
 {"$lookup":{"from":"product","localField":"_id","foreignField":"nr","as":"p"}}
@@ -9,4 +8,3 @@ aggregate
 {"$unwind" : "$pt"}
 {"$match":{"pt.productType": @ProductType@}}
 {"$limit":10}
-

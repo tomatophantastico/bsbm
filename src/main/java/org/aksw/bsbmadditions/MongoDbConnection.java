@@ -2,18 +2,27 @@ package org.aksw.bsbmadditions;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.apache.log4j.Level;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import org.bson.BSON;
 import org.bson.Document;
+import org.bson.json.JsonWriterSettings;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Iterators;
+import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Multimap;
 import com.mongodb.MongoClient;
+import com.mongodb.client.AggregateIterable;
 import com.mongodb.client.FindIterable;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
@@ -32,16 +41,19 @@ public class MongoDbConnection implements ServerConnection{
 
   
   // the connection pool is using a singleton style implementation
-  private static MongoClient mclient = null;
-  MongoDatabase mdb = null;
+  private MongoClient mclient = null;
+  private MongoDatabase mdb = null;
   
 
   
   
   public MongoDbConnection(String url, String dbname) {
-    
-    if(mclient==null){
       
+   
+    if(mdb ==null){
+      synchronized (MongoDbConnection.class) {
+        
+
       LogManager.getLogger("org.mongodb.driver.connection").setLevel(org.apache.log4j.Level.OFF);
       LogManager.getLogger("org.mongodb.driver.management").setLevel(org.apache.log4j.Level.OFF);
       LogManager.getLogger("org.mongodb.driver.cluster").setLevel(org.apache.log4j.Level.OFF);
@@ -51,6 +63,7 @@ public class MongoDbConnection implements ServerConnection{
       
       mclient = new MongoClient(url);
       mdb = mclient.getDatabase(dbname);
+    }
     }
   }
   
@@ -72,40 +85,33 @@ public class MongoDbConnection implements ServerConnection{
       String[] queryParts = query.getQueryString().split(System.getProperty("line.separator"));
       
 
-          
+      LinkedHashMultimap<String, String> fetch = LinkedHashMultimap.create();
+      String fetchExec = null;
       
-      MongoCollection<Document> collection =  mdb.getCollection(queryParts[0]);
-      
-      MongoCursor<Document> iter = null;    
-      //assemble the query
-      if(queryParts[1].equals("aggregate")){
-        List<Document> pipeline = Lists.newArrayList();
-        for(int i = 2; i< queryParts.length;i++){
-          String json = queryParts[i];
-          if(!json.isEmpty()){
-            pipeline.add( Document.parse(queryParts[i]));
-          }
+      for(String queryPart: queryParts){
+        if(queryPart.startsWith("{")){
+          fetch.put(fetchExec, queryPart);
+        }else{
+          fetchExec = queryPart;
         }
         
-       iter =  collection.aggregate(pipeline).iterator();
-        
-        
-      }else{
-        //assume find
-        if (queryParts.length!=3){
-          throw new RuntimeException("Query " +  query.getNr() +  "  is malformed" );
+      }
+      //This will not work in the general case, but only for the queries we have.
+      Multimap<String,Document> results = HashMultimap.create();
+      for(String exec: fetch.keySet()){
+        String[] execSplit  = exec.split("\\.");
+        String collection  = execSplit[0];
+        String operation = execSplit[1];
+        if(operation.equals("aggregate")){
+         results.putAll( executeAggregate(collection,fetch.get(exec),results));
+        }else{
+          results.putAll( executeFind(collection,fetch.get(exec).iterator().next(),results));
         }
-        
-        iter =  collection.find(Document.parse(queryParts[2])).iterator();
-        
       }
       
-      while (iter.hasNext()) {
-        Document document = (Document) iter.next();
-        resultCount++;
-        
-      }
-          
+      
+     
+      resultCount = results.values().size();
           
           
 
@@ -119,11 +125,93 @@ public class MongoDbConnection implements ServerConnection{
       if(logger.isEnabledFor( Level.ALL ) && queryType!=3 && queryMixRun > 0)
         logResultInfo(queryNr, queryMixRun, timeInSeconds,
                        queryString, queryType, 0,
-                       resultCount);
+                       resultCount,results);
 
       queryMix.setCurrent(resultCount, timeInSeconds);
   
   }
+
+  private Multimap<String,Document> executeAggregate(String collection, Set<String> pipelineStrings, Multimap<String, Document> previousresults) {
+    
+    List<Document> pipeline = Lists.newArrayList();
+    for(String pipelineString:pipelineStrings){
+        pipeline.add( Document.parse(pipelineString));
+    }
+    
+    MongoCollection<Document> mdbColl =  mdb.getCollection(collection);
+    MongoCursor<Document> aggCursor =  mdbColl.aggregate(pipeline).iterator();
+    
+    Multimap<String, Document> result = HashMultimap.create();
+    while(aggCursor.hasNext()){
+      result.put(collection, aggCursor.next());
+    }
+    return result;
+
+  }
+  
+  
+  private Multimap<String,Document> executeFind(String collection, String find,Multimap<String,Document> previousResults){
+    Multimap<String,Document> result = HashMultimap.create();
+    MongoCollection<Document> mdbColl =  mdb.getCollection(collection);
+    for(String findTemplated: applyTemplate(find, previousResults)){
+      MongoCursor<Document> aggCursor =  mdbColl.find(Document.parse(findTemplated)).iterator();
+      while(aggCursor.hasNext()){
+        result.put(collection, aggCursor.next());
+      }
+
+    }
+    
+    return result;
+    
+    
+  }
+
+  
+  private List<String> applyTemplate(String origQuery, Multimap<String, Document> previousResults){
+    List<String> templateFilled = Lists.newArrayList();
+    String pattern = origQuery;
+    if(origQuery.contains("#")){
+      int firstHashLoc = origQuery.indexOf("#");
+      int secondHashLoc = origQuery.indexOf("#", firstHashLoc+1);
+      pattern = origQuery.substring(firstHashLoc+1,secondHashLoc);
+    
+   
+      String collection = pattern.substring(0, pattern.indexOf("."));
+      String key = pattern.substring(pattern.indexOf(".")+1);
+      
+      for(Document doc: previousResults.get(collection)){
+        for(String patternFillString : getValues(doc, key)){
+          templateFilled.add(origQuery.replace("#"+pattern+"#", patternFillString));
+        }
+      }
+     
+    
+    }else{
+      templateFilled.add( origQuery);
+    }
+    
+    return templateFilled;
+    
+  }
+  
+
+  
+  
+  private List<String> getValues(Document doc, String key){
+    List<String> results = Lists.newArrayList();
+    if(key.contains(".")){
+      String topKey = key.substring(0, key.indexOf("."));
+      String subkey = key.substring(key.indexOf(".")+1);
+      results.addAll(getValues((Document)doc.get(topKey), subkey));
+    }else{
+      results.add(doc.get(key).toString());
+    }
+    
+    return results;
+    
+    
+  }
+
 
   @Override
   public void executeQuery(CompiledQuery query, CompiledQueryMix queryMix) {
@@ -138,40 +226,33 @@ public class MongoDbConnection implements ServerConnection{
       String[] queryParts = query.getQueryString().split(System.getProperty("line.separator"));
       
 
-          
+      LinkedHashMultimap<String, String> fetch = LinkedHashMultimap.create();
+      String fetchExec = null;
       
-      MongoCollection<Document> collection =  mdb.getCollection(queryParts[0]);
-      
-      MongoCursor<Document> iter = null;    
-      //assemble the query
-      if(queryParts[1].equals("aggregate")){
-        List<Document> pipeline = Lists.newArrayList();
-        for(int i = 2; 2< queryParts.length;i++){
-          String json = queryParts[i];
-          if(!json.isEmpty()){
-            pipeline.add( Document.parse(queryParts[i]));
-          }
+      for(String queryPart: queryParts){
+        if(queryPart.startsWith("{")){
+          fetch.put(fetchExec, queryPart);
+        }else{
+          fetchExec = queryPart;
         }
         
-       iter =  collection.aggregate(pipeline).iterator();
-        
-        
-      }else{
-        //assume find
-        if (queryParts.length!=3){
-          throw new RuntimeException("Query " +  query.getNr() +  "  is malformed" );
+      }
+      //This will not work in the general case, but only for the queries we have.
+      Multimap<String,Document> results = HashMultimap.create();
+      for(String exec: fetch.keySet()){
+        String[] execSplit  = exec.split("\\.");
+        String collection  = execSplit[0];
+        String operation = execSplit[1];
+        if(operation.equals("aggregate")){
+         results.putAll( executeAggregate(collection,fetch.get(exec),results));
+        }else{
+          results.putAll( executeFind(collection,fetch.get(exec).iterator().next(),results));
         }
-        
-        iter =  collection.find(Document.parse(queryParts[2])).iterator();
-        
       }
       
-      while (iter.hasNext()) {
-        Document document = (Document) iter.next();
-        resultCount++;
-        
-      }
-          
+      
+     
+      resultCount = results.values().size();
           
           
 
@@ -185,9 +266,10 @@ public class MongoDbConnection implements ServerConnection{
       if(logger.isEnabledFor( Level.ALL ) && query.getQueryType()!=3 && queryMixRun > 0)
         logResultInfo(queryNr, queryMixRun, timeInSeconds,
                        queryString, query.getQueryType(), 0,
-                       resultCount);
+                       resultCount,results);
 
       queryMix.setCurrent(resultCount, timeInSeconds);
+
   }
 
   
@@ -205,24 +287,29 @@ public class MongoDbConnection implements ServerConnection{
   
   private void logResultInfo(int queryNr, int queryMixRun, double timeInSeconds,
       String queryString, byte queryType, int resultSizeInBytes,
-      int resultCount) {
-StringBuffer sb = new StringBuffer(1000);
-sb.append("\n\n\tQuery " + queryNr + " of run " + queryMixRun + " has been executed ");
-sb.append("in " + String.format("%.6f",timeInSeconds) + " seconds.\n" );
-sb.append("\n\tQuery string:\n\n");
-sb.append(queryString);
-sb.append("\n\n");
-
-//Log results
-if(queryType==Query.DESCRIBE_TYPE)
-sb.append("\tQuery(Describe) result (" + resultSizeInBytes + " Bytes): \n\n");
-else
-sb.append("\tQuery results (" + resultCount + " results): \n\n");
-
-
-//sb.append(result);
-sb.append("\n__________________________________________________________________________________\n");
-logger.log(Level.ALL, sb.toString());
-}
+      int resultCount, Multimap<String,Document> results) {
+  StringBuffer sb = new StringBuffer(1000);
+  sb.append("\n\n\tQuery " + queryNr + " of run " + queryMixRun + " has been executed ");
+  sb.append("in " + String.format("%.6f",timeInSeconds) + " seconds.\n" );
+  sb.append("\n\tQuery string:\n\n");
+  sb.append(queryString);
+  sb.append("\n\n");
+  
+  //Log results
+  if(queryType==Query.DESCRIBE_TYPE)
+  sb.append("\tQuery(Describe) result (" + resultSizeInBytes + " Bytes): \n\n");
+  else
+  sb.append("\tQuery results:" + resultCount + " (count)");
+  for(Document doc: results.values()){
+    sb.append(doc.toJson());
+    sb.append("\n");
+  }
+  sb.append("\n\n");
+  
+  
+  //sb.append(result);
+  sb.append("\n__________________________________________________________________________________\n");
+  logger.log(Level.ALL, sb.toString());
+  }
 
 }
