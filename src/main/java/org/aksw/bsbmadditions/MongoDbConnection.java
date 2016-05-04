@@ -41,8 +41,8 @@ public class MongoDbConnection implements ServerConnection{
 
   
   // the connection pool is using a singleton style implementation
-  private MongoClient mclient = null;
-  private MongoDatabase mdb = null;
+  private static MongoClient mclient = null;
+  private static MongoDatabase mdb = null;
   
 
   
@@ -77,58 +77,59 @@ public class MongoDbConnection implements ServerConnection{
     String queryString = query.getQueryString();
     QueryMix queryMix = query.getQueryMix();
     int queryNr = query.getNr();
- 
-      long start = System.nanoTime();
-      int resultCount = 0;
 
-      
-      String[] queryParts = query.getQueryString().split(System.getProperty("line.separator"));
-      
+    long start = System.nanoTime();
 
-      LinkedHashMultimap<String, String> fetch = LinkedHashMultimap.create();
-      String fetchExec = null;
-      
-      for(String queryPart: queryParts){
-        if(queryPart.startsWith("{")){
-          fetch.put(fetchExec, queryPart);
-        }else{
-          fetchExec = queryPart;
-        }
-        
-      }
-      //This will not work in the general case, but only for the queries we have.
-      Multimap<String,Document> results = HashMultimap.create();
-      for(String exec: fetch.keySet()){
-        String[] execSplit  = exec.split("\\.");
-        String collection  = execSplit[0];
-        String operation = execSplit[1];
-        if(operation.equals("aggregate")){
-         results.putAll( executeAggregate(collection,fetch.get(exec),results));
-        }else{
-          results.putAll( executeFind(collection,fetch.get(exec).iterator().next(),results));
-        }
-      }
-      
-      
-     
-      resultCount = results.values().size();
-          
-          
+    Multimap<String, Document> results = execute(queryString);
 
-      Long stop = System.nanoTime();
-      Long interval = stop-start;
-      
-      timeInSeconds = interval.doubleValue()/1000000000;
+    int resultCount = 0;
+    resultCount = results.values().size();
 
-      int queryMixRun = queryMix.getRun() + 1;
-      
-      if(logger.isEnabledFor( Level.ALL ) && queryType!=3 && queryMixRun > 0)
-        logResultInfo(queryNr, queryMixRun, timeInSeconds,
-                       queryString, queryType, 0,
-                       resultCount,results);
+    Long stop = System.nanoTime();
+    Long interval = stop - start;
 
-      queryMix.setCurrent(resultCount, timeInSeconds);
+    timeInSeconds = interval.doubleValue() / 1000000000;
+
+    int queryMixRun = queryMix.getRun() + 1;
+
+    if (logger.isEnabledFor(Level.ALL) && queryType != 3 && queryMixRun > 0)
+      logResultInfo(queryNr, queryMixRun, timeInSeconds, queryString, queryType, 0, resultCount, results);
+
+    queryMix.setCurrent(resultCount, timeInSeconds);
   
+  }
+
+
+
+
+
+  private Multimap<String, Document> execute(String queryString) {
+    String[] queryParts = queryString.split(System.getProperty("line.separator"));
+
+    LinkedHashMultimap<String, String> fetch = LinkedHashMultimap.create();
+    String fetchExec = null;
+
+    for (String queryPart : queryParts) {
+      if (queryPart.startsWith("{")) {
+        fetch.put(fetchExec, queryPart);
+      } else {
+        fetchExec = queryPart;
+      }
+
+    }
+    // This will not work in the general case, but only for the queries we have.
+    Multimap<String, Document> results = HashMultimap.create();
+    for (String exec : fetch.keySet()) {
+      String[] execSplit = exec.split("\\.");
+      String collection = execSplit[0];
+      String operation = execSplit[1];
+      if (operation.equals("aggregate")) {
+        results.putAll(executeAggregate(collection, fetch.get(exec), results));
+      } else {
+        results.putAll(executeFind(collection, fetch.get(exec).iterator().next(), results));
+      }
+    }
+    return results;
   }
 
   private Multimap<String,Document> executeAggregate(String collection, Set<String> pipelineStrings, Multimap<String, Document> previousresults) {
@@ -223,35 +224,7 @@ public class MongoDbConnection implements ServerConnection{
       int resultCount = 0;
 
       
-      String[] queryParts = query.getQueryString().split(System.getProperty("line.separator"));
-      
-
-      LinkedHashMultimap<String, String> fetch = LinkedHashMultimap.create();
-      String fetchExec = null;
-      
-      for(String queryPart: queryParts){
-        if(queryPart.startsWith("{")){
-          fetch.put(fetchExec, queryPart);
-        }else{
-          fetchExec = queryPart;
-        }
-        
-      }
-      //This will not work in the general case, but only for the queries we have.
-      Multimap<String,Document> results = HashMultimap.create();
-      for(String exec: fetch.keySet()){
-        String[] execSplit  = exec.split("\\.");
-        String collection  = execSplit[0];
-        String operation = execSplit[1];
-        if(operation.equals("aggregate")){
-         results.putAll( executeAggregate(collection,fetch.get(exec),results));
-        }else{
-          results.putAll( executeFind(collection,fetch.get(exec).iterator().next(),results));
-        }
-      }
-      
-      
-     
+      Multimap<String,Document> results = execute(queryString);
       resultCount = results.values().size();
           
           
@@ -294,11 +267,7 @@ public class MongoDbConnection implements ServerConnection{
   sb.append("\n\tQuery string:\n\n");
   sb.append(queryString);
   sb.append("\n\n");
-  
-  //Log results
-  if(queryType==Query.DESCRIBE_TYPE)
-  sb.append("\tQuery(Describe) result (" + resultSizeInBytes + " Bytes): \n\n");
-  else
+ 
   sb.append("\tQuery results:" + resultCount + " (count)");
   for(Document doc: results.values()){
     sb.append(doc.toJson());
