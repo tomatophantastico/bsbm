@@ -1,7 +1,4 @@
 review
-aggregate
-{$match:{"product":@ProductXYZ@, "language":"en"}}
-{$project:{"product":1, "rating1":1, "rating2":2, "title":1, "reviewDate":1, "rating3":1, "rating4":1, "person.name":1, "person.nr":1}}
-{$limit:20}
-
+find
+{"product":@ProductXYZ@,"language":"en"}
 

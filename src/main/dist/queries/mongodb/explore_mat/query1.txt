@@ -1,6 +1,3 @@
 product_feature_typ
-aggregate
-{$match:{$and:[{"productfeature.nr":@ProductFeature1@}, {"type.productType":@ProductType@},{"productfeature.nr":@ProductFeature2@}, {"propertyNum1":{$gt:@x@}}]}}
-{$project:{"label":1, "nr":1}}
-{$limit:10}
-
+find
+{"type.productType":@ProductType@,$and: [{"productfeature.nr":@ProductFeature1@},{"productfeature.nr":@ProductFeature2@}],propertyNum1:{$gt: @x@}}

@@ -1,8 +1,6 @@
 offer
-aggregate
-{$match:{"product.nr":@ProductXYZ@,deliveryDays:{$lte:3}, "validTo" :{ $gt:ISODate("@currentDate@")}, "vendor.country":"US"}}
-{$project: {"nr":1, "price":1}}
-{$sort:{"price":1}}
-{$limit: 10}
+find
+{"vendor.country":"US","product.nr":@ProductXYZ@,deliveryDays:{$lte:3}, "validTo" :{ $gt:ISODate("@currentDate@")}}
+
 
 

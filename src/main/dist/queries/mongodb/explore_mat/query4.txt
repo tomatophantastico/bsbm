@@ -1,5 +1,3 @@
 product_feature_typ
-aggregate
-{$match:{$or:[{$and:[{productType:112},{"productfeature":330},{"productfeature.nr":320}, {"propertyNum1":{$gt:457}}]},{$and:[{"productfeature.nr":16}, {"propertyNum2":{$gt:488}}]}]}}
-{$limit:10}
-{$skip:10}
+find
+{$and: [{"type.productType":@ProductType@},{"productfeature.nr":@ProductFeature1@},{$or: [{$and: [{"productfeature.nr":@ProductFeature2@},{"propertyNum1":{$gt: @x@}}]},{$and: [{"productfeature.nr":@ProductFeature3@},{"propertyNum2":{$gt:@y@}}]}]}]}

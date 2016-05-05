@@ -1,7 +1,7 @@
 product
-aggregate
-{$match:{"nr":@ProductXYZ@}} 
-{$project:{"label":1, "comment":1, "producer":1,"productFeature":1, "propertyTex1":1,  "propertyTex2":1, "propertyTex3":1, "propertyTex4":1,"propertyTex5":1,"propertyNum1":1,"propertyNum2":1,"propertyNum3":1, "propertyNum4":1}}
+find
+{"nr":@ProductXYZ@} 
+
 
 
 
