@@ -3,7 +3,6 @@ aggregate
 {$match:{"nr":@ReviewXYZ@}}
 {$project:{"person":1}}
 {$lookup:{from:"review", localField:"person.nr", foreignField:"person.nr", as:"r"}}
-{$project:{"person.name":1,"person.nr":1, "person.mbox_sh1sum":1, "person.country":1, "r.product":1, "r.title":1, "r.nr":1} }
-
-
+{$unwind: "$r"}
+{$project:{"person.name":1,"person.nr":1, "person.mbox_sh1sum":1, "person.country":1, "r.product":1, "r.title":1, "r.nr":1}}
 

@@ -1,10 +1,13 @@
-productfeatureproduct
+product_matComplex
 aggregate
-{$match:{"product.nr":@ProductXYZ@}}
-{$project:{"productFeature":1, "product.nr":1, "product.propertyNum1":1,"product.propertyNum2":1 }}
-{$lookup:{from:"productfeatureproduct", localField:"productFeature", foreignField:"productFeature", as:"pfp"}}
-{$unwind:"$pfp"}
-{$project:{"productFeature":1, "product.nr":1, "product.propertyNum1":1,"product.propertyNum2":1 , "pfp.product.nr":1, "pfp.product.label":1, "pfp.product.propertyNum1":1, "pfp.product.propertyNum2":1, "pN1H":{$add:[120,"$product.propertyNum1"]}, "pN2H":{$add:[170,"$product.propertyNum2"]},  "pN1T":{$add:[-120,"$product.propertyNum1"]},  "pN2T":{$add:[-170,"$product.propertyNum2"]} }}
-{$project:{"productFeature":1, "product.nr":1, "product.propertyNum1":1,"product.propertyNum2":1 , "pfp.product.nr":1, "pfp.product.label":1, "pfp.product.propertyNum1":1, "pfp.product.propertyNum2":1, "pN1H":{$add:[120,"$product.propertyNum1"]}, "pN2H":{$add:[170,"$product.propertyNum2"]},  "pN1T":{$add:[-120,"$product.propertyNum1"]},  "pN2T":{$cmp:["$pfp.product.propertyNum2","$pN2T"]}, "pN1T":{$cmp:["$pfp.product.propertyNum1","$pN1T"]},  "pN2H":{$cmp:["$pfp.product.propertyNum2","$pN2H"]},  "pN1H":{$cmp:["$pfp.product.propertyNum1","$pN1H"]}}}
-{$match:{$and:[{"pN1H":{$lt:0}}, {"pN2H":{$lt:0}},{"pN1T":{$gt:0}},{"pN2T":{$gt:0}}, {"pfp.product.nr":{$ne:@ProductXYZ@}}]}}
-{$group:{_id:{"nr":"$pfp.product.nr","label":"$pfp.product.label"}}}
+{ $match:{"nr":@ProductXYZ@}}
+{$project:{"productfeature":1, "nr":1, "propertyNum1":1,"propertyNum2":1 }}
+{$unwind: "$productfeature"}
+{$lookup: {from: "product_matComplex",localField: "productfeature.nr",foreignField: "productfeature.nr",as: "pfp"}}
+{$unwind: "$pfp"}
+{$project:{"productfeature":1, "nr":1, "propertyNum1":1,"propertyNum2":1 , "pfp.nr":1, "pfp.label":1, "pfp.propertyNum1":1, "pfp.propertyNum2":1, "pN1H":{$add:[120,"$propertyNum1"]}, "pN2H":{$add:[170,"$propertyNum2"]},  "pN1T":{$add:[-120,"$propertyNum1"]},  "pN2T":{$add:[-170,"$propertyNum2"]} }}
+{$project:{"productFeature":1, "nr":1, "propertyNum1":1,"propertyNum2":1 , "pfp.nr":1, "pfp.label":1, "pfp.propertyNum1":1, "pfp.propertyNum2":1, "pN1H":{$add:[120,"$propertyNum1"]}, "pN2H":{$add:[170,"$propertyNum2"]},  "pN1T":{$add:[-120,"$propertyNum1"]},  "pN2T":{$cmp:["$pfp.propertyNum2","$pN2T"]}, "pN1T":{$cmp:["$pfp.propertyNum1","$pN1T"]},  "pN2H":{$cmp:["$pfp.propertyNum2","$pN2H"]},  "pN1H":{$cmp:["$pfp.propertyNum1","$pN1H"]}}}
+{$match:{$and:[{"pN1H":{$lt:0}}, {"pN2H":{$lt:0}},{"pN1T":{$gt:0}},{"pN2T":{$gt:0}}, {"pfp.nr":{$ne:@ProductXYZ@}}]}}
+{$group:{_id:{"nr":"$pfp.nr","label":"$pfp.label"}}}
+{$sort: {"_id.label":1}}
+{ $limit: 5 }
