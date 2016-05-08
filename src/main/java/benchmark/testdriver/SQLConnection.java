@@ -53,9 +53,26 @@ public class SQLConnection implements ServerConnection {
 			ResultSet results = statement.executeQuery(queryString);
 	
 			int resultCount = 0;
-			while(results.next())
+			StringBuffer resultString = new StringBuffer(); 
+			while(results.next()){
 				resultCount++;
-			
+				if(logger.isEnabledFor(Level.ALL)){
+				  
+				  for(int i = 1; results.getMetaData().getColumnCount()>=i;i++){
+				    String colLabel = results.getMetaData().getColumnLabel(i);
+				    
+				    String value  = results.getString(i);
+				    value = value !=null?value.substring(0, Math.min(20, results.getString(i).length())):null;
+				    
+				    resultString.append(colLabel);
+				    resultString.append(": ");
+				    resultString.append(value);
+				    resultString.append(" **");
+				    
+				  }
+				  resultString.append("\n");
+				}
+			}
 			Long stop = System.nanoTime();
 			Long interval = stop-start;
 			
@@ -66,7 +83,7 @@ public class SQLConnection implements ServerConnection {
 			if(logger.isEnabledFor( Level.ALL ) && queryType!=3 && queryMixRun > 0)
 				logResultInfo(queryNr, queryMixRun, timeInSeconds,
 		                   queryString, queryType, 0,
-		                   resultCount);
+		                   resultCount, resultString.toString());
 
 			queryMix.setCurrent(resultCount, timeInSeconds);
 			results.close();
@@ -95,8 +112,24 @@ public class SQLConnection implements ServerConnection {
 			ResultSet results = statement.executeQuery(queryString);
 	
 			int resultCount = 0;
-			while(results.next())
-				resultCount++;
+			StringBuffer resultString = new StringBuffer(); 
+      while(results.next()){
+        resultCount++;
+        if(logger.isEnabledFor(Level.ALL)){
+          
+          for(int i = 0; results.getMetaData().getColumnCount()>i;i++){
+            String colLabel = results.getMetaData().getColumnLabel(i);
+            String value  = results.getString(i);
+            value = value !=null?value.substring(0, Math.min(20, results.getString(i).length())):null;
+                      resultString.append(colLabel);
+            resultString.append(": ");
+            resultString.append(value);
+            resultString.append(" **");
+            
+          }
+          resultString.append("\n");
+        }
+      }
 			
 			Long stop = System.nanoTime();
 			Long interval = stop-start;
@@ -108,7 +141,7 @@ public class SQLConnection implements ServerConnection {
 			if(logger.isEnabledFor( Level.ALL ) && queryType!=3 && queryMixRun > 0)
 				logResultInfo(queryNr, queryMixRun, timeInSeconds,
 		                   queryString, queryType, 0,
-		                   resultCount);
+		                   resultCount,resultString.toString());
 
 			queryMix.setCurrent(resultCount, timeInSeconds);
 			results.close();
@@ -124,7 +157,7 @@ public class SQLConnection implements ServerConnection {
 	
 	private void logResultInfo(int queryNr, int queryMixRun, double timeInSeconds,
 			                   String queryString, byte queryType, int resultSizeInBytes,
-			                   int resultCount) {
+			                   int resultCount, String result) {
 		StringBuffer sb = new StringBuffer(1000);
 		sb.append("\n\n\tQuery " + queryNr + " of run " + queryMixRun + " has been executed ");
 		sb.append("in " + String.format("%.6f",timeInSeconds) + " seconds.\n" );
@@ -136,7 +169,7 @@ public class SQLConnection implements ServerConnection {
 		if(queryType==Query.DESCRIBE_TYPE)
 			sb.append("\tQuery(Describe) result (" + resultSizeInBytes + " Bytes): \n\n");
 		else
-			sb.append("\tQuery results (" + resultCount + " results): \n\n");
+			sb.append("\tQuery results (" + resultCount + " results):\n " + result + "  \n\n");
 		
 
 //		sb.append(result);
