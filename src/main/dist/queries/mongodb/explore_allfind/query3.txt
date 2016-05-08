@@ -1,0 +1,6 @@
+productfeatureproduct.find
+ {"pf.productFeature":@ProductFeature1@}
+product.find
+{nr: #productfeatureproduct.product#,  propertyNum1: {$gt:@x@}, propertyNum3: {$lt:@y@}}
+producttypeproduct.find
+{product: #productfeatureproduct.product#}

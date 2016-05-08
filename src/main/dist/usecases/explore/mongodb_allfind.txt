@@ -1,0 +1,1 @@
+querymix=queries/mongodb/explore_allfind

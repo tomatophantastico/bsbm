@@ -1,4 +1,3 @@
-review
-find
+review.find
 {"product":@ProductXYZ@,"language":"en"}
 

@@ -1,3 +1,2 @@
-offer
-find
+offer.find
 {"nr":@OfferXYZ@}

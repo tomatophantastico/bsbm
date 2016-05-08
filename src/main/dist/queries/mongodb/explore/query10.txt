@@ -1,4 +1,8 @@
-offer.find
-{"product": @ProductXYZ@, "deliveryDays": {$lte:3}, "validTo":{$gt: ISODate("@currentDate@")}}
-vendor.find
-{country:"US",nr: #offer.vendor#}
+vendor.aggregate
+{$match: {country:"US"}}
+{$project:{nr:1,_id:0}}
+{$lookup:{from:"offer", localField:"nr", foreignField:"vendor", as: "offer"}}
+{$unwind:"$offer"}, {$match: {"offer.product":@ProductXYZ@, "offer.deliveryDays": {$lte:3}, "offer.validTo":{$gt: ISODate("@currentDate@")}}}
+{$group: {_id: { nr: "$offer.nr", price: "$offer.price"}}}
+{$sort: {"_id.price":1}}
+{$limit: 10}]

@@ -1,0 +1,4 @@
+offer.find
+{"product": @ProductXYZ@, "deliveryDays": {$lte:3}, "validTo":{$gt: ISODate("@currentDate@")}}
+vendor.find
+{country:"US",nr: #offer.vendor#}

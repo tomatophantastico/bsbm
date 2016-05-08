@@ -1,0 +1,10 @@
+product.find
+{"nr":@ProductXYZ@}
+offer.find
+{"product":@ProductXYZ@}
+vendor.find
+{"nr":#offer.vendor#}
+review.find
+{"product":@ProductXYZ@}
+person.find
+{"nr":#review.person#}

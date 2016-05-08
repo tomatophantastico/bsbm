@@ -1,5 +1,4 @@
-review
-aggregate
+review.aggregate
 {$match:{ product:@ProductXYZ@,language:"en"}}
 {$lookup:{from: "person", localField:"person", foreignField: "nr", as: "person"} }
 {$unwind:"$person"}

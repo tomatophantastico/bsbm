@@ -1,0 +1,8 @@
+productfeatureproduct.find
+{"productFeature":@ProductFeature1@}
+productfeatureproduct.find
+{"productFeature":@ProductFeature2@}
+product.find
+{"propertyNum1": {$gt:@x@} }
+productTypeProduct.find
+{"productType": @ProductType@}

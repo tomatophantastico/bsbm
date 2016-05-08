@@ -1,5 +1,4 @@
-product
-find
+product.find
 {"nr":@ProductXYZ@} 
 
 

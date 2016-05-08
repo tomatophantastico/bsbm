@@ -1,5 +1,4 @@
-producttypeproduct
-aggregate
+producttypeproduct.aggregate
 {$match:{productType:@ProductType@}}
 {$lookup:{from:"product", localField:"product", foreignField:"nr", as: "p"}}
 {$unwind:"$p"} 

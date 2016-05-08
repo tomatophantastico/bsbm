@@ -1,5 +1,4 @@
-offer
-find
+offer.find
 {"vendor.country":"US","product.nr":@ProductXYZ@,deliveryDays:{$lte:3}, "validTo" :{ $gt:ISODate("@currentDate@")}}
 
 

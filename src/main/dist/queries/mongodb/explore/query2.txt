@@ -1,5 +1,4 @@
-product
-aggregate
+product.aggregate
 {$match: {nr:@ProductXYZ@}} 
 {$lookup: {from: "producer", localField: "producer", foreignField: "nr", as:"pr" }}
 {$lookup: {  from: "productfeatureproduct", localField: "nr",foreignField: "product",as:"pfp" }}

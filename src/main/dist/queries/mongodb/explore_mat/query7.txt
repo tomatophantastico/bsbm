@@ -1,5 +1,4 @@
-product
-aggregate
+product.aggregate
 {$match:{"nr":@ProductXYZ@}},
 {$project:{"label":1,"nr":1 }},
 {$lookup:{from:"offer",localField:"nr", foreignField:"product.nr", as:"o"}},

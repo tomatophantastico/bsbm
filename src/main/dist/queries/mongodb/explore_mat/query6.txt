@@ -1,3 +1,2 @@
-product
-find
+product.find
 {label:{$regex:/@word1@/} }

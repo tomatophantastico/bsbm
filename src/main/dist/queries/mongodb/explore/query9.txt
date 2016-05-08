@@ -1,5 +1,4 @@
-review
-aggregate
+review.aggregate
 {$match:{ nr:@ReviewXYZ@}}
 {$lookup:{from: "person", localField:"person", foreignField: "nr", as: "person"}}
 {$unwind:"$person"}

@@ -1,5 +1,4 @@
-product_matComplex
-aggregate
+product_matComplex.aggregate
 { $match:{"nr":@ProductXYZ@}}
 {$project:{"productfeature":1, "nr":1, "propertyNum1":1,"propertyNum2":1 }}
 {$unwind: "$productfeature"}

@@ -1,5 +1,4 @@
-productfeatureproduct
-aggregate
+productfeatureproduct.aggregate
 {$match: {product:@ProductXYZ@}}
 {$lookup: {from: "productfeatureproduct", localField: "productFeature", foreignField: "productFeature", as:"pfp1" }}
 {$unwind:"$pfp1"}

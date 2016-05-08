@@ -1,3 +1,2 @@
-product_feature_typ
-find
+product_feature_typ.find
 {$and: [{"type.productType":@ProductType@},{"productfeature.nr":@ProductFeature1@},{$or: [{$and: [{"productfeature.nr":@ProductFeature2@},{"propertyNum1":{$gt: @x@}}]},{$and: [{"productfeature.nr":@ProductFeature3@},{"propertyNum2":{$gt:@y@}}]}]}]}
