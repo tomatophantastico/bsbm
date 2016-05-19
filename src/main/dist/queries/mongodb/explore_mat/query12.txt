@@ -1,4 +1,4 @@
-offer.aggregate
-{$match:{nr:@OfferXYZ@}}
-{$group:{_id:{productNr:"$product.nr", productlabel:"$product.label", vendorname:"$vendor.label", vendorhomepage:"$vendorhomepage", offerUrl:"$offerWebpage", price:"$price", deliveryDays: "$deliveryDays", validTo:"$validTo"}}}
+offer.find
+{nr:@OfferXYZ@}
+
 

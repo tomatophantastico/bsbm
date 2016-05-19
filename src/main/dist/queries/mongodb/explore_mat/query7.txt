@@ -1,9 +1,6 @@
-product.aggregate
-{$match:{"nr":@ProductXYZ@}},
-{$project:{"label":1,"nr":1 }},
-{$lookup:{from:"offer",localField:"nr", foreignField:"product.nr", as:"o"}},
-{$unwind:"$o"},
-{$lookup:{from:"review",localField:"nr", foreignField:"product",as:"r"}},
-{$project:{"label":1,"o.vendor":{$cond:{if:{$eq:["$o.vendor.country","DE"]}, then: "$o.vendor.nr",else: null}}, "o.vendorTitle":{$cond:{if:{$eq:["$o.vendor.country","DE"]}, then: "$o.vendor.label",else: null}},"o.price":{$cond:{if:{$gt:["$o.validTo", ISODate("@currentDate@")]}, then: "$o.price",else: null}}, "o.offer":{$cond:{if:{$gt:["$o.validTo",ISODate("@currentDate@")]},then: "$o.nr",else: null}},"r.rating1":1, "r.rating2":1, "r.person.name":1,"r.person.nr":1,"r.title":1,"r.nr":1,"o.validTo":1}},
-{$project:{"label":1,"o.vendor":{$cond:{if:{$gt:["$o.validTo", ISODate("@currentDate@")]}, then: "$o.vendor",else: null}}, "o.vendorTitle":{$cond:{if:{$gt:["$o.validTo", ISODate("@currentDate@")]}, then: "$o.vendorTitle",else: null}},"o.price":{$cond:{if:{$eq:["$o.vendor",null]}, then: null,else: "$o.price"}}, "o.offer":{$cond:{if:{$eq:["$o.vendor",null]}, then: null,else: "$o.offer"}},"r.rating1":1, "r.rating2":1, "r.person.name":1,"r.person.nr":1,"r.title":1,"r.nr":1}},
-
+offer.find
+{"product":@ProductXYZ@}
+review.find
+{"product":@ProductXYZ@}
+person.find
+{"nr":#review.person#}
