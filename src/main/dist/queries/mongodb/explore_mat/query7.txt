@@ -1,0 +1,6 @@
+offer.find
+{"product":@ProductXYZ@}
+review.find
+{"product":@ProductXYZ@}
+person.find
+{"nr":#review.person#}

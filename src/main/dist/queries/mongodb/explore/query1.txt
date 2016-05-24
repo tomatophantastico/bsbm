@@ -1,0 +1,10 @@
+productfeatureproduct.aggregate
+{"$group":{"_id":"$product","pfp":{"$push":"$productFeature"}}}
+{"$match":{"$and":[{"pfp":@ProductFeature1@},{"pfp":@ProductFeature2@}]}}
+{"$lookup":{"from":"product","localField":"_id","foreignField":"nr","as":"p"}}
+{"$unwind" : "$p"}
+{"$match":{"p.propertyNum1": {$gt:@x@} }}
+{"$lookup":{"from": "producttypeproduct", "localField": "_id", "foreignField": "product", "as": "pt"}}
+{"$unwind" : "$pt"}
+{"$match":{"pt.productType": @ProductType@}}
+{"$limit":10}

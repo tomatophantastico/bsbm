@@ -1,0 +1,6 @@
+product.find
+{nr:@ProductXYZ@}
+producer.find
+{nr: #product.producer#}
+productfeatureproduct.find
+{product: #product.nr#}

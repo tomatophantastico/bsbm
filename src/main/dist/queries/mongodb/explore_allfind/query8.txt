@@ -1,0 +1,4 @@
+review.find
+{ product:@ProductXYZ@,language:"en"}
+person.find
+{nr: #review.person#}

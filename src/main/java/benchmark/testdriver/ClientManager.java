@@ -1,5 +1,7 @@
 package benchmark.testdriver;
 
+import org.aksw.bsbmadditions.MongoDbConnection;
+
 public class ClientManager {
 	private int activeThreadsInWarmup;
 	private int activeThreadsInRun;
@@ -31,9 +33,11 @@ public class ClientManager {
 		clients = new ClientThread[nrThreads];
 		for(int i=0;i<nrThreads;i++) {
 			ServerConnection sConn;
-			if(parent.doSQL)
+			if(parent.doSQL){
 				sConn = new SQLConnection(parent.sparqlEndpoint, parent.timeout, parent.driverClassName);
-			else {
+			}if(parent.doMongo){
+			  sConn = new MongoDbConnection(parent.sparqlEndpoint, parent.dbName);
+			}else {
 				if(parent.sparqlUpdateEndpoint==null)
 					sConn = new SPARQLConnection(parent.sparqlEndpoint, parent.defaultGraph, parent.timeout);
 				else

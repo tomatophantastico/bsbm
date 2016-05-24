@@ -1,0 +1,4 @@
+review.find
+{ nr:@ReviewXYZ@}
+person.find
+{nr: #review.person#}

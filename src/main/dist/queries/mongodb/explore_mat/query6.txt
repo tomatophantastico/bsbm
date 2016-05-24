@@ -1,0 +1,2 @@
+product.find
+{label:{$regex:/@word1@/} }

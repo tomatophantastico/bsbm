@@ -1,0 +1,6 @@
+offer.find
+{"nr":@OfferXYZ@}
+vendor.find
+{"nr":#offer.vendor#}
+product.find
+{"nr": #offer.product#}
